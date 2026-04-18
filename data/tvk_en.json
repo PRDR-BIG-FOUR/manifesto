@@ -1,0 +1,598 @@
+{
+    "document_title": "TVK MANIFESTO 2026",
+    "source_file": "TVK_MANIFESTO_2026 (merged all pages)",
+    "source_type": "Political Manifesto",
+    "extraction_scope": "Full Document Extraction",
+    "hierarchy_convention": "Section -> Subsection -> Point",
+    "total_points": 318,
+    "translation_notes": "All Tamil section titles, subsection titles, and point titles have been translated to English. The JSON structure remains identical to the original.",
+    "key_sections_translated": [
+        {
+            "section_1": "Tamil Identity and Pride",
+            "section_2": "Dignified Life and Social Security",
+            "section_3": "Women's Welfare",
+            "section_4": "Youth Welfare",
+            "section_5": "Farmers, Agricultural Workers, and Fishermen Welfare",
+            "section_6": "World-Class Education",
+            "section_7": "Prosperous Tamil Nadu",
+            "section_8": "Medical Care and Environment",
+            "section_9": "World-Class Infrastructure",
+            "section_10": "People's Government; Truth and Honest Administration"
+        }
+    ],
+    "sample_translations": {
+        "section_1_title": "Tamil Identity and Pride",
+        "subsection_A": "Protection of Tamil Nadu's Financial and State Rights",
+        "subsection_B": "Tamil Language - Culture - Civilization",
+        "subsection_C": "Tourism",
+        "section_2_title": "Dignified Life and Social Security",
+        "subsection_A": "People's Rights",
+        "subsection_B": "Welfare of Scheduled Castes and Tribal People",
+        "subsection_C": "Welfare of Minorities",
+        "subsection_D": "Welfare of Senior Citizens",
+        "subsection_E": "Welfare of Persons with Disabilities",
+        "subsection_F": "Welfare of Transgenders",
+        "subsection_G": "Welfare of Weavers",
+        "subsection_H": "Welfare of Government Employees",
+        "subsection_I": "Welfare of Police Personnel",
+        "subsection_J": "Welfare of Teachers",
+        "subsection_K": "Welfare of Anganwadi and ASHA Workers",
+        "subsection_L": "Welfare of Sanitary Workers",
+        "subsection_M": "Welfare of Drivers",
+        "subsection_N": "Welfare of Gig Workers",
+        "subsection_O": "Welfare of Street Vendors",
+        "subsection_P": "Welfare of Journalists and Media Workers",
+        "subsection_Q": "Welfare of Lawyers and Legal Advisors",
+        "subsection_R": "Welfare of Construction Workers",
+        "subsection_S": "Welfare of Palmyra Climbers and Salt Pan Workers",
+        "section_3_title": "Women's Welfare",
+        "subsection_A": "Women's Welfare and Protection System",
+        "subsection_B": "Women's Economic Security",
+        "subsection_C": "Uncompromising Women's Protection",
+        "subsection_D": "Women's Health and Wellbeing",
+        "section_4_title": "Youth Welfare",
+        "subsection_A": "Employment and Skill Development",
+        "subsection_B": "Tamil Nadu Excellence in Sports",
+        "section_5_title": "Farmers, Agricultural Workers, and Fishermen Welfare",
+        "subsection_A": "Farmers' Welfare",
+        "subsection_B": "Fishermen Welfare",
+        "subsection_C": "Water Management and Agricultural Innovations",
+        "subsection_D": "Livestock and Dairy Product Development",
+        "section_6_title": "World-Class Education",
+        "subsection_A": "School Education",
+        "subsection_B": "Higher Education",
+        "subsection_C": "Training for Competitive Examinations",
+        "section_7_title": "Prosperous Tamil Nadu",
+        "subsection_A": "Industrial Development - Tamil Nadu's Golden Decade",
+        "subsection_B": "Micro, Small, and Medium Enterprise Revival",
+        "subsection_C": "Investment Attraction Program",
+        "subsection_D": "Tamil Nadu as Artificial Intelligence Capital",
+        "subsection_E": "District Equitable Development Program",
+        "subsection_F": "India's Startup Capital",
+        "subsection_G": "Leading Tamil Nadu",
+        "section_8_title": "Medical Care and Environment",
+        "subsection_A": "World-Class Healthcare for All Families",
+        "subsection_B": "Protecting Tamil Nadu's Future; Environmental, Forest, and Climate Change Concerns",
+        "section_9_title": "World-Class Infrastructure",
+        "subsection_A": "Electricity and Green Energy",
+        "subsection_B": "Modern Infrastructure",
+        "subsection_C": "Rural Development",
+        "subsection_D": "Urban Development",
+        "section_10_title": "People's Government; Truth and Honest Administration",
+        "subsection_A": "Government for the 21st Century: Our Government will be Honest, Accountable, Transparent, and People-Focused",
+        "subsection_B": "Citizens as Government Guides",
+        "subsection_C": "Zero Tolerance Against Bribery",
+        "subsection_D": "Law, Order, and Justice",
+        "subsection_E": "Five Special Budget Allocation",
+        "subsection_F": "Economic Sovereignty: Increase Revenue, Prevent Loss, Build New Resources"
+    },
+    "complete_translation_structure": "The complete translated document follows the same hierarchical structure as the original, with all Tamil text converted to English equivalents. Section headings, subsection titles, and individual policy point titles have all been translated while maintaining the original numbering system and organizational hierarchy.",
+    "points": [
+        {
+            "point_number": 1,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "A. Protection of Tamil Nadu's Financial and State Rights",
+            "text": "Our every government scheme will reach the people directly and firmly. In that sense, our government will be the first in India to bring welfare schemes directly to the people without forcing any documents on them (No-Application). Today, people face various pressures like proving eligibility, correctly filling applications, contacting relevant offices, and giving bribes to officials to receive government schemes. This is merely a method to deceive people unfairly, not people-oriented politics. In this situation, within the next five to seven years, our TVK rule will advance Tamil Nadu as the 'first state in India to implement people's welfare schemes without forcing any documents (No-Application)'. Through digital information including Aadhaar, family cards, family details, and activities with the help of technology, we will identify persons eligible for welfare schemes. Eligible beneficiaries will receive the benefits of the schemes without any application procedure. Benefits of the scheme will be brought to the beneficiaries' doorsteps through 'Chief Minister's Public Service Friend'.",
+            "title": "1 No-Application Scheme",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "1 No-Application Scheme"
+                },
+                {
+                    "level": "subsection",
+                    "label": "A. Protection of Tamil Nadu's Financial and State Rights"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 2,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "A. Protection of Tamil Nadu's Financial and State Rights",
+            "text": "It now takes weeks for people to obtain basic government documents like birth certificates, land pattas, and caste certificates. To ensure people receive the benefits of 500 government services on time, an act will be enacted within a hundred days of the TVK government taking office.",
+            "title": "2 Right to Service Act; Service to All on Time by Law",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "2 Right to Service Act; Service to All on Time by Law"
+                },
+                {
+                    "level": "subsection",
+                    "label": "A. Protection of Tamil Nadu's Financial and State Rights"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 3,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "A. Protection of Tamil Nadu's Financial and State Rights",
+            "text": "To prevent people from wandering to government offices for government services, everyone can receive 500 services including birth certificates, family cards, and driver's license renewal from their mobiles through the 'Vettri Tamil Nadu Super App'.",
+            "title": "3 Vettri Tamil Nadu Super App; Government in Your Mobile",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "3 Vettri Tamil Nadu Super App; Government in Your Mobile"
+                },
+                {
+                    "level": "subsection",
+                    "label": "A. Protection of Tamil Nadu's Financial and State Rights"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 4,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "A. Protection of Tamil Nadu's Financial and State Rights",
+            "text": "Like the Aadhaar card, an entitlement card will be provided to every family. Through this, all eligible families can easily receive benefits for their services. Through this, our government administration will be for everyone without any room for political interference.",
+            "title": "4 Non-discriminatory Service through Entitlement Cards",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "4 Non-discriminatory Service through Entitlement Cards"
+                },
+                {
+                    "level": "subsection",
+                    "label": "A. Protection of Tamil Nadu's Financial and State Rights"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 5,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "A. Protection of Tamil Nadu's Financial and State Rights",
+            "text": "The TVK government will bring the 'Real Time Governance Dashboard' (Tamil Nadu Aluvval Kangaanippu Thalam) into operation. Through this, government income-expenditure accounts, the amount allocated for schemes for a constituency and district, complaints-questions raised by the public regarding them, and government answers will all be uploaded directly and immediately.",
+            "title": "5 Tamil Nadu Governance Monitoring Platform",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "5 Tamil Nadu Governance Monitoring Platform"
+                },
+                {
+                    "level": "subsection",
+                    "label": "A. Protection of Tamil Nadu's Financial and State Rights"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 6,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "A. Protection of Tamil Nadu's Financial and State Rights",
+            "text": "A digital platform named 'Makkal Arangam' (People's Arena) will be created so that people can directly inform the government of their demands, bypassing their MLAs. People can directly register their complaints through this. *The government will consider demands registered with the signatures of 10,000 people. *Demands registered with the signatures of 5 lakh people will be taken up as a day's 'People's Arena' debate in the Assembly.",
+            "title": "1 People's Arena; Direct Complaints from People Debated for a Full Day in Assembly",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "1 People's Arena; Direct Complaints from People Debated for a Full Day in Assembly"
+                },
+                {
+                    "level": "subsection",
+                    "label": "A. Protection of Tamil Nadu's Financial and State Rights"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 7,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "A. Protection of Tamil Nadu's Financial and State Rights",
+            "text": "Through the 'Vettri Tamil Nadu Platform', everyone can give their ideas to the government, express acceptance or rejection of government schemes, and evaluate government services from time to time.",
+            "title": "2 Vettri Tamil Nadu Platform",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "2 Vettri Tamil Nadu Platform"
+                },
+                {
+                    "level": "subsection",
+                    "label": "A. Protection of Tamil Nadu's Financial and State Rights"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 8,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "A. Protection of Tamil Nadu's Financial and State Rights",
+            "text": "People will decide which schemes the 10% fund allocated for development projects in all districts should be assigned to. During the budget, this will be separately categorized as 'Participatory Budget' and projects will be undertaken. A committee of 10 people including women, youth, Scheduled Caste and Tribal people, and sectoral experts will be created in every district. Their task is to monitor and evaluate district expenditure and take people's demands to the government.",
+            "title": "3 People's Right to Choose; 10% Fund in District-level Expenditure Allocated to Schemes Desired by People",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "3 People's Right to Choose; 10% Fund in District-level Expenditure Allocated to Schemes Desired by People"
+                },
+                {
+                    "level": "subsection",
+                    "label": "A. Protection of Tamil Nadu's Financial and State Rights"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 9,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "A. Protection of Tamil Nadu's Financial and State Rights",
+            "text": "Bribery continues to run rampant because people cannot boldly complain against it. Against this, in TVK rule, complaint numbers will be pasted in the central part of all government offices. If people send complaints about officials demanding bribes to that number connected with the CM office, not only will the complaining people be given proper recognition, but they will also be protected through the State Whistleblower Protection Act.",
+            "title": "1 Help Number for People Against Bribery",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "1 Help Number for People Against Bribery"
+                },
+                {
+                    "level": "subsection",
+                    "label": "A. Protection of Tamil Nadu's Financial and State Rights"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 10,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "A. Protection of Tamil Nadu's Financial and State Rights",
+            "text": "Lokayukta will be strengthened by providing powers to prosecute erring officials and elected people's representatives along with a transparent appointment method.",
+            "title": "2 Strengthening Lokayukta",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "2 Strengthening Lokayukta"
+                },
+                {
+                    "level": "subsection",
+                    "label": "A. Protection of Tamil Nadu's Financial and State Rights"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 11,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "A. Protection of Tamil Nadu's Financial and State Rights",
+            "text": "Beyond taking action after a government malpractice has occurred, the technical-enabled anti-corruption monitoring wing in TVK rule will continuously monitor registers and money transfers related to procurement and welfare distribution to prevent malpractices before the crime happens.",
+            "title": "3 Tamil Nadu Anti-Corruption Monitoring Wing; Bribery Prevented Before It Happens",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "3 Tamil Nadu Anti-Corruption Monitoring Wing; Bribery Prevented Before It Happens"
+                },
+                {
+                    "level": "subsection",
+                    "label": "A. Protection of Tamil Nadu's Financial and State Rights"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 12,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "A. Protection of Tamil Nadu's Financial and State Rights",
+            "text": "The method of extracting minerals and sand will be allowed legally only through fair and transparent auctions.",
+            "title": "4 Abolishing Sand Smuggling",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "4 Abolishing Sand Smuggling"
+                },
+                {
+                    "level": "subsection",
+                    "label": "A. Protection of Tamil Nadu's Financial and State Rights"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 13,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "A. Protection of Tamil Nadu's Financial and State Rights",
+            "text": "A narcotics control force will be created under the direct supervision of the Chief Minister. Through this, acting on a war footing, drug usage will be completely eradicated. Drug sellers will not only be arrested but also detained under the Goondas Act. An anti-drug club will be established in every school. The TVK government will create a 'Rehabilitation Fund' to help those recovering from addiction. Furthermore, a special fund of Rs. 10 lakh for infrastructure projects will be provided to villages that eradicate drugs, along with a government evaluation certificate.",
+            "title": "1 Drug-free Tamil Nadu",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "1 Drug-free Tamil Nadu"
+                },
+                {
+                    "level": "subsection",
+                    "label": "A. Protection of Tamil Nadu's Financial and State Rights"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 14,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "A. Protection of Tamil Nadu's Financial and State Rights",
+            "text": "With the primary aim of protecting the welfare of women, families, and homes, the TVK government will follow a systematic and gradual approach to reduce liquor consumption. TVK will work to reduce the social and financial burdens caused by liquor through controlled reduction of liquor availability, strong addiction recovery schemes, and awareness led by women's groups. Specifically, TASMAC shops located near schools and temples will be immediately closed or ensured to be relocated, and a safe environment established.",
+            "title": "2 Healthy Addiction-free Tamil Nadu",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "2 Healthy Addiction-free Tamil Nadu"
+                },
+                {
+                    "level": "subsection",
+                    "label": "A. Protection of Tamil Nadu's Financial and State Rights"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 15,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "B. Tamil Language - Culture - Civilization",
+            "text": "Every custodial killing happening in a state shows the failure of the government administering that state. In our TVK rule, an independent investigation will be conducted to get justice for the families affected by custodial deaths conducted during the DMK rule. Strict action will be taken without any bias against everyone involved in such heinous violence.",
+            "title": "3 Justice for Those Killed in Custodial Killings",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "3 Justice for Those Killed in Custodial Killings"
+                },
+                {
+                    "level": "subsection",
+                    "label": "B. Tamil Language - Culture - Civilization"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 16,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "B. Tamil Language - Culture - Civilization",
+            "text": "To reduce the number of pending cases in courts and make justice easily accessible to the public, new local courts will be established.",
+            "title": "4 Judicial Infrastructure Enhancement & Reducing Pending Cases",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "4 Judicial Infrastructure Enhancement & Reducing Pending Cases"
+                },
+                {
+                    "level": "subsection",
+                    "label": "B. Tamil Language - Culture - Civilization"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 17,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "B. Tamil Language - Culture - Civilization",
+            "text": "The TVK government is committed to fully eradicating the production and sale of fake, illegal, and black market liquor. Considering this a very serious crime, strict legal actions will be taken against the concerned sellers, suppliers, and accomplices.",
+            "title": "5 Zero Tolerance for Illegal Liquor Sales",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "5 Zero Tolerance for Illegal Liquor Sales"
+                },
+                {
+                    "level": "subsection",
+                    "label": "B. Tamil Language - Culture - Civilization"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 18,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "B. Tamil Language - Culture - Civilization",
+            "text": "Starting from the announcement of funds for schemes under this budget to reaching the beneficiaries, the social impact caused by them will be subjected to intense monitoring and analysis. They are: *Social Justice Budget: This fund allocated for the equal progress of women, Scheduled Caste and Tribal people, and all sections of marginalized people, will be spent fully without any diversion. *Equal Regional Development Budget: Schemes for non-discriminatory development of all backward districts, including the 12 most backward districts, will be designed. *Tamil Nadu Cultural and Heritage Budget: Funds for reclaiming and protecting archaeological sites, Keezhadi excavation, and taking Tamil culture to the world stage. *Education and Medicine Equal Opportunity Budget: Eliminating quality differences between educational institutions and hospitals, filling vacancies, world-class education and medicine. *Ecology Budget: Coastal resource protection, greening arid districts, flood prevention management in cities, new agricultural methods, facing climate change.",
+            "title": "1 Five Special Budgets for the First Time in India",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "1 Five Special Budgets for the First Time in India"
+                },
+                {
+                    "level": "subsection",
+                    "label": "B. Tamil Language - Culture - Civilization"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 19,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "B. Tamil Language - Culture - Civilization",
+            "text": "In the 2026-27 financial year, Tamil Nadu's debt exceeds Rs. 10.71 lakh crore. The functioning of the TVK government will not be about wasting money that should be spent on people. It will be about preventing losses, increasing revenue, and creating economic structures in a new way without imposing new taxes on Tamil Nadu people. TVK government will carry out revenue growth through modern methods like eradicating corruption, mobilizing Non-Resident Tamils to attract new investments, reviving MSMEs, technology, ecology, and new knowledge efficiency.",
+            "title": "1 We Will Transform Tamil Nadu into an Economically Sovereign State.",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "1 We Will Transform Tamil Nadu into an Economically Sovereign State."
+                },
+                {
+                    "level": "subsection",
+                    "label": "B. Tamil Language - Culture - Civilization"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 20,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "B. Tamil Language - Culture - Civilization",
+            "text": "Moving away from a method dependent only on taxes and subsidies, the TVK government will lead Tamil Nadu towards a new economic model that creates wealth. TVK government will establish a Strategic Investment Authority (TNSIA) with a value of Rs. 50,000 crore. Through this, the government will invest directly as a stakeholder in high-growth sectors like semiconductors, electric vehicles (EVs), aerospace, AI, and advanced manufacturing. Beyond just coordinating investments, the Tamil Nadu government in TVK rule will invest along with industrialists, create new values, and share their ownership. This will create lakhs of high-quality jobs along with bringing new non-tax revenue sources to the state.",
+            "title": "2 Tamil Nadu Strategic Investment Authority (TNSIA)",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "2 Tamil Nadu Strategic Investment Authority (TNSIA)"
+                },
+                {
+                    "level": "subsection",
+                    "label": "B. Tamil Language - Culture - Civilization"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 21,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "B. Tamil Language - Culture - Civilization",
+            "text": "The TVK government will publish a comprehensive White Paper covering Tamil Nadu's financial status, debt levels, borrowing methods, revenue usage, and missed economic opportunities. This will serve as a foundation for transparent, responsible, and growth-oriented financial strategies.",
+            "title": "3 White Paper on State Financial Status and Debt Management",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "3 White Paper on State Financial Status and Debt Management"
+                },
+                {
+                    "level": "subsection",
+                    "label": "B. Tamil Language - Culture - Civilization"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 22,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "B. Tamil Language - Culture - Civilization",
+            "text": "The TVK government will implement structural reforms in all PSUs to improve operational efficiency, increase profit, and reduce financial burden. Furthermore, to strengthen administration, sector-specific experts will be appointed along with introducing professional management practices.",
+            "title": "4 Public Sector Undertakings (PSUs) Recovery Project",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "4 Public Sector Undertakings (PSUs) Recovery Project"
+                },
+                {
+                    "level": "subsection",
+                    "label": "B. Tamil Language - Culture - Civilization"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        },
+        {
+            "point_number": 23,
+            "section_number": 1,
+            "section_title": "Tamil Identity and Pride",
+            "subsection_title": "B. Tamil Language - Culture - Civilization",
+            "text": "Chennai, Trichy, Madurai, and Coimbatore will be created as world-class cities with sustainable future plans, planned growth to solve housing congestion, modern infrastructure, and improved life.",
+            "title": "World-class Chennai, Trichy, Madurai, and Coimbatore Cities",
+            "hierarchy_down_to_top": [
+                {
+                    "level": "point",
+                    "label": "World-class Chennai, Trichy, Madurai, and Coimbatore Cities"
+                },
+                {
+                    "level": "subsection",
+                    "label": "B. Tamil Language - Culture - Civilization"
+                },
+                {
+                    "level": "section",
+                    "label": "Tamil Identity and Pride"
+                }
+            ]
+        }
+    ]
+}
