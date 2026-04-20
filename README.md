@@ -101,6 +101,84 @@ Env overrides: `HOST`, `PORT`, `CUDA_VISIBLE_DEVICES`, `GPU_MEM_UTIL`,
 `DTYPE`, `MAX_MODEL_LEN`, `VENV_DIR`. The app loads the corpus + vLLM model
 once at startup, then serves a query box with top-N slider and party filter.
 
+## Pipeline 2 — LLM enrichment (Gemini Flash + Google Search)
+
+For every point in each per-party manifesto JSON, calls `gemini-3-flash-preview`
+(via [`google-genai`](https://ai.google.dev/gemini-api/docs/google-search))
+once with Google Search grounding, and produces three analyses in a single
+shot:
+
+1. **Beneficiary metadata** — geography, gender, age group, community
+   category, minority (religious / linguistic), occupation, sector, income
+   class, education level, disability, urban/rural, primary theme, free-form
+   tags, beneficiary count estimate.
+2. **Plan existence** — Google-Search-grounded check for whether the proposal
+   is already implemented (Tamil Nadu / Government of India / other state),
+   with cited URLs.
+3. **Feasibility** — multi-axis 1–5 scoring (fiscal, legal, administrative,
+   timeline, political) with critical comments + overall verdict + key risks.
+
+Async fan-out (`client.aio.models.generate_content` + `asyncio.gather` +
+semaphore) packs `--batch-k` points per request to amortize the system prompt
+across multiple promises and lower per-token cost.
+
+### Setup
+
+```bash
+uv pip install -r src/pipeline_2/requirements.txt
+export GEMINI_API_KEY=...
+```
+
+### Run
+
+```bash
+PARTY=all CONCURRENCY=8 BATCH_K=4 scripts/run_pipeline_2.sh
+
+python -m src.pipeline_2.process \
+  --party aiadmk \
+  --batch-k 4 --concurrency 8 \
+  --model gemini-3-flash-preview \
+  --out data/pipeline_2 \
+  --limit 8                  # smoke run
+```
+
+Env overrides for the launcher: `PARTY`, `MODEL`, `BATCH_K`, `CONCURRENCY`,
+`MAX_RETRIES`, `LIMIT`, `OUT`, `VENV_DIR`.
+
+### Output
+
+`data/pipeline_2/<party>.enriched.json` mirrors the input shape but each
+`points[i]` gains an `analysis` block:
+
+```json
+"analysis": {
+  "beneficiary":   { "geography": {...}, "gender": [...], "age_group": [...], ... },
+  "plan_existence":{ "already_exists": true, "existing_scheme_names": [...],
+                     "jurisdiction": [...], "evidence": [{"title","url","snippet"}],
+                     "notes": "..." },
+  "feasibility":   { "fiscal": {"score","comments"}, "legal": {...},
+                     "administrative": {...}, "timeline": {...}, "political": {...},
+                     "overall_score": 3, "overall_comments": "...", "key_risks": [...] },
+  "_grounding":    { "search_queries": [...], "citation_urls": [...] },
+  "_meta":         { "model": "gemini-3-flash-preview", "tokens": {...}, "attempts": 1 }
+}
+```
+
+A top-level `pipeline_2_meta` block records the model, batch size, concurrency,
+counts of failures / parse errors, total token estimate, and timestamps.
+
+### Protocol notes
+
+- Google Search grounding is mutually exclusive with structured output, so
+  the model emits JSON-as-text. The three sections per point are separated by
+  `<sep>` and consecutive points by `<item_sep>` — see
+  [src/pipeline_2/prompts.py](src/pipeline_2/prompts.py) and
+  [src/pipeline_2/parser.py](src/pipeline_2/parser.py).
+- Transient errors (429, 5xx, timeouts) are retried with exponential backoff
+  + jitter. Points the model fails to produce land with
+  `analysis: {"error": "..."}` and are counted in `pipeline_2_meta.failures`
+  / `parse_errors`.
+
 ## Out of scope (future pipelines)
 
 - Vector DB ingestion (FAISS / Qdrant / Chroma).
