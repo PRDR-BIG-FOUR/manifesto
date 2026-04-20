@@ -1,0 +1,546 @@
+import React, { useState, useMemo } from "react";
+import { DonutChart } from "./components/DonutChart";
+import { CompareGrid } from "./components/CompareGrid";
+import { DemographyExplorer } from "./components/DemographyExplorer";
+import imgHero from "figma:asset/1723a5f326a5277d54a9100e06a459502c93fd53.png";
+import {
+  allPoints,
+  TOTALS,
+  GRAND_TOTAL,
+  welfareData,
+  eduData,
+  feasibilityRadarData,
+  noveltyData,
+  urbanRuralData,
+  factChecks,
+  PARTY_LABELS,
+  type FactCheck,
+  type FactCheckEvidence,
+} from "./manifestoData";
+import {
+  RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, Tooltip, Legend,
+} from "recharts";
+
+const sans  = '"Inter Tight", sans-serif';
+const serif = '"Source Serif 4", serif';
+const mono  = '"IBM Plex Mono", monospace';
+const brown = "#a16749";
+const dark  = "#121212";
+const gray  = "#6b6b6b";
+const border = "#d9d7d2";
+const admkColor = "#547c5b";
+const dmkColor  = "#c94d48";
+const tvkColor  = "#E5A000";
+
+const tabs = ["Dashboard", "Compare", "Demography", "Fact Check"];
+
+
+// ── Small shared components ───────────────────────────────────────────────
+
+function Pill({ text, color }: { text: string; color: string }) {
+  return (
+    <span style={{
+      display: "inline-block", padding: "2px 8px", borderRadius: 20,
+      background: color + "18", border: `1px solid ${color}40`,
+      fontFamily: sans, fontSize: 10, fontWeight: 600,
+      letterSpacing: "0.08em", textTransform: "uppercase" as const, color,
+    }}>{text}</span>
+  );
+}
+
+function FeasibilityDots({ score }: { score: number | null }) {
+  if (score === null) return <span style={{ fontFamily: mono, fontSize: 11, color: gray }}>—</span>;
+  const color = score >= 4 ? "#1C804C" : score >= 3 ? brown : "#d43d51";
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+      {[1,2,3,4,5].map(i => (
+        <span key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: i <= Math.round(score) ? color : "#e8e4dc" }} />
+      ))}
+      <span style={{ fontFamily: mono, fontSize: 11, color: gray, marginLeft: 2 }}>{score}/5</span>
+    </span>
+  );
+}
+
+// ── NavBar ────────────────────────────────────────────────────────────────
+
+function NavBar({
+  activeTab, setActiveTab, searchQuery, setSearchQuery,
+}: {
+  activeTab: string; setActiveTab: (t: string) => void;
+  searchQuery: string; setSearchQuery: (q: string) => void;
+}) {
+  return (
+    <div style={{
+      borderBottomWidth: 1, borderBottomStyle: "solid", borderBottomColor: dark,
+      padding: "10px 0", display: "flex", justifyContent: "space-between",
+      alignItems: "center", fontFamily: sans,
+    }}>
+      <div style={{
+        background: brown, padding: "12px 4px", height: 18,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        flexShrink: 0, marginRight: 160,
+      }}>
+        <span style={{ fontFamily: serif, fontStyle: "italic", fontSize: 14, color: "#fff", letterSpacing: "3px" }}>
+          PRDR
+        </span>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 24, flex: 1, justifyContent: "center" }}>
+        {tabs.map(t => (
+          <button key={t} onClick={() => setActiveTab(t)} style={{
+            background: "none", border: "none", cursor: "pointer", padding: "4px 4px",
+            fontFamily: sans, fontSize: 14, fontWeight: activeTab === t ? 700 : 500,
+            letterSpacing: "0.58px", textTransform: "uppercase" as const,
+            color: activeTab === t ? brown : dark,
+            boxShadow: activeTab === t ? `inset 0 -2px 0 0 ${brown}` : "none",
+          }}>{t}</button>
+        ))}
+      </div>
+      <div style={{
+        display: "flex", alignItems: "center", gap: 8,
+        borderWidth: 1, borderStyle: "solid",
+        borderColor: searchQuery ? brown : border,
+        borderRadius: 4, padding: "6px 11px", background: "#faf9f6",
+        width: 280, flexShrink: 0, transition: "border-color 0.2s",
+      }}>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <circle cx="5.7" cy="6.2" r="4.2" stroke={searchQuery ? brown : dark} strokeWidth="0.98" />
+          <line x1="8.85" y1="9.35" x2="12" y2="12.5" stroke={searchQuery ? brown : dark} strokeWidth="0.98" />
+        </svg>
+        <input
+          placeholder="Search promises…"
+          value={searchQuery}
+          onChange={e => {
+            setSearchQuery(e.target.value);
+            if (e.target.value.trim()) setActiveTab("Search");
+          }}
+          onKeyDown={e => {
+            if (e.key === "Escape") { setSearchQuery(""); setActiveTab("Dashboard"); }
+          }}
+          style={{
+            border: "none", outline: "none", background: "transparent",
+            fontFamily: sans, fontSize: 12, color: dark, flex: 1, letterSpacing: "0.24px",
+          }}
+        />
+        {searchQuery && (
+          <button
+            onClick={() => { setSearchQuery(""); setActiveTab("Dashboard"); }}
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: gray, fontSize: 16, lineHeight: 1 }}
+          >×</button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Search Tab ────────────────────────────────────────────────────────────
+
+function SearchTab({ query }: { query: string }) {
+  const [pf, setPf] = useState<string | null>(null);
+  const q = query.toLowerCase().trim();
+
+  const results = useMemo(() => {
+    if (!q) return [];
+    return allPoints.filter(p =>
+      p.text.toLowerCase().includes(q) ||
+      p.title.toLowerCase().includes(q) ||
+      p.sectionTitle.toLowerCase().includes(q) ||
+      p.primaryTheme.toLowerCase().includes(q) ||
+      p.tags.some(t => t.toLowerCase().includes(q))
+    );
+  }, [q]);
+
+  const filtered = pf ? results.filter(r => r.partyLabel === pf) : results;
+
+  return (
+    <section style={{ padding: "32px 0" }}>
+      <div style={{ paddingBottom: 24 }}>
+        <h2 style={{ fontFamily: serif, fontSize: 34, fontWeight: 400, color: dark, margin: 0, lineHeight: 1.2 }}>
+          {results.length} result{results.length !== 1 ? "s" : ""} for "{query}"
+        </h2>
+        <p style={{ fontFamily: serif, fontSize: 16, lineHeight: "30px", color: "#2e2e2e", marginTop: 4 }}>
+          Searching across {allPoints.length} indexed promises from 3 parties.
+        </p>
+      </div>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 24, alignItems: "center" }}>
+        {[{ label: "All", value: null as string | null }, ...PARTY_LABELS.map(l => ({ label: l, value: l }))].map(f => (
+          <button key={f.label} onClick={() => setPf(f.value)} style={{
+            fontFamily: sans, fontSize: 12, fontWeight: 500, padding: "7px 12px",
+            borderRadius: 4, cursor: "pointer",
+            background: pf === f.value ? dark : "transparent",
+            color: pf === f.value ? "#fff" : "#1a1a1a",
+            borderWidth: 1, borderStyle: "solid",
+            borderColor: pf === f.value ? dark : border,
+          }}>{f.label}</button>
+        ))}
+        <span style={{ marginLeft: "auto", fontFamily: sans, fontSize: 12, color: gray }}>
+          {filtered.length} shown
+        </span>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div style={{ padding: "48px 0", textAlign: "center", color: gray, fontFamily: serif, fontSize: 18 }}>
+          No promises found matching "{query}". Try a different keyword.
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          {filtered.map((p, i) => (
+            <div key={i} style={{ padding: "20px 0", borderTop: `1px solid ${border}` }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, flexWrap: "wrap" as const }}>
+                <span style={{ width: 10, height: 10, borderRadius: 2, background: p.partyColor, flexShrink: 0 }} />
+                <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: p.partyColor }}>
+                  {p.partyLabel}
+                </span>
+                {p.sectionTitle && (
+                  <span style={{ fontFamily: mono, fontSize: 11, color: gray }}>§ {p.sectionTitle}</span>
+                )}
+                <span style={{ marginLeft: "auto" }}>
+                  <FeasibilityDots score={p.feasibilityScore} />
+                </span>
+              </div>
+              {p.title && (
+                <div style={{ fontFamily: serif, fontSize: 17, color: dark, lineHeight: 1.4, marginBottom: 6, fontWeight: 500 }}>
+                  {p.title}
+                </div>
+              )}
+              <div style={{ fontFamily: serif, fontSize: 14, color: "#444", lineHeight: 1.65 }}>
+                {p.text.length > 300 ? p.text.slice(0, 300) + "…" : p.text}
+              </div>
+              {p.tags.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6, marginTop: 10 }}>
+                  {p.tags.slice(0, 6).map(tag => (
+                    <Pill key={tag} text={tag} color={p.partyColor} />
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+// ── Dashboard Tab ─────────────────────────────────────────────────────────
+
+function DashboardTab() {
+  const welfareTotal = welfareData.admk + welfareData.dmk + welfareData.tvk;
+  const eduTotal     = eduData.admk    + eduData.dmk    + eduData.tvk;
+
+  return (
+    <>
+      {/* Hero */}
+      <section style={{ padding: "56px 0 80px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 40 }}>
+        <div style={{ maxWidth: 586 }}>
+          <h1 style={{ fontFamily: serif, fontWeight: 400, fontSize: 64, lineHeight: 1.115, letterSpacing: "-1.7px", color: dark, margin: 0 }}>
+            Tamil Nadu's big parties{" "}
+            <span style={{ fontWeight: 500, color: brown }}>Manifesto</span>{" "}
+            competition
+          </h1>
+          <p style={{ fontFamily: serif, fontSize: 20, lineHeight: "30px", color: "#2e2e2e", marginTop: 19, maxWidth: 586 }}>
+            A structured reading of the ADMK, DMK and TVK manifestos for the 2026 Legislative Assembly election.
+            Every promise parsed, classified by theme, beneficiary, sector and feasibility.
+          </p>
+          <div style={{ display: "flex", gap: 4, marginTop: 20 }}>
+            <div style={{ width: 18, height: 8, borderRadius: 5, background: brown }} />
+            {[0,1,2].map(i => <div key={i} style={{ width: 8, height: 8, borderRadius: 5, background: "#b68c80", opacity: 0.24 }} />)}
+          </div>
+        </div>
+        <div style={{ width: 533, height: 273, borderRadius: 8, overflow: "hidden", borderWidth: 1, borderStyle: "solid", borderColor: border, flexShrink: 0, background: "#fff" }}>
+          <img src={imgHero} alt="Tamil Nadu Election" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        </div>
+      </section>
+
+      {/* Donut Charts */}
+      <section style={{ display: "flex", borderTopWidth: 1, borderTopStyle: "solid", borderTopColor: border, borderBottomWidth: 1, borderBottomStyle: "solid", borderBottomColor: border }}>
+        <div style={{ flex: 1 }}>
+          <DonutChart title="Total promises" total={GRAND_TOTAL} admk={TOTALS.admk} dmk={TOTALS.dmk} tvk={TOTALS.tvk} />
+        </div>
+        <div style={{ borderLeftWidth: 1, borderLeftStyle: "solid", borderLeftColor: border, borderRightWidth: 1, borderRightStyle: "solid", borderRightColor: border, flex: 1 }}>
+          <DonutChart title="Welfare & cash-transfer promises" total={welfareTotal} admk={welfareData.admk} dmk={welfareData.dmk} tvk={welfareData.tvk} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <DonutChart title="Education promises" total={eduTotal} admk={eduData.admk} dmk={eduData.dmk} tvk={eduData.tvk} />
+        </div>
+      </section>
+
+      {/* Stats Bar */}
+      <section style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", borderBottomWidth: 1, borderBottomStyle: "solid", borderBottomColor: border }}>
+        {(() => {
+          const maxTotal = Math.max(TOTALS.admk, TOTALS.dmk, TOTALS.tvk);
+          const minTotal = Math.min(TOTALS.admk, TOTALS.dmk, TOTALS.tvk);
+          const noteFor = (v: number) => v === maxTotal ? "largest manifesto" : v === minTotal ? "smallest manifesto" : "across all sections";
+          return [
+            { label: "Total promises",  value: GRAND_TOTAL.toLocaleString(), note: "across 3 parties" },
+            { label: "ADMK promises",   value: TOTALS.admk.toLocaleString(), note: noteFor(TOTALS.admk) },
+            { label: "DMK promises",    value: TOTALS.dmk.toLocaleString(),  note: noteFor(TOTALS.dmk) },
+            { label: "TVK promises",    value: TOTALS.tvk.toLocaleString(),  note: noteFor(TOTALS.tvk) },
+            { label: "Points analysed", value: allPoints.length.toString(),  note: "LLM-enriched sample" },
+          ];
+        })().map((s, i) => (
+          <div key={s.label} style={{
+            padding: 22, borderLeftWidth: i > 0 ? 1 : 0, borderLeftStyle: "solid" as const,
+            borderLeftColor: border, marginTop: 32, borderTopWidth: 1, borderTopStyle: "solid" as const, borderTopColor: border,
+          }}>
+            <div style={{ fontFamily: sans, fontSize: 12, fontWeight: 600, letterSpacing: "1.2px", textTransform: "uppercase" as const, color: gray, marginBottom: 10 }}>
+              {s.label}
+            </div>
+            <div style={{ fontFamily: serif, fontSize: 38, lineHeight: 1, color: dark, letterSpacing: "-0.38px" }}>
+              {s.value}
+            </div>
+            <div style={{ fontFamily: sans, fontSize: 12, color: gray, marginTop: 8 }}>{s.note}</div>
+          </div>
+        ))}
+      </section>
+
+      {/* Feasibility Radar */}
+      <section style={{ padding: "48px 0 32px" }}>
+        <h2 style={{ fontFamily: serif, fontSize: 28, fontWeight: 400, color: dark, margin: "0 0 6px" }}>
+          How feasible are the promises?
+        </h2>
+        <p style={{ fontFamily: serif, fontSize: 15, lineHeight: "28px", color: "#2e2e2e", margin: "0 0 28px", maxWidth: 600 }}>
+          Each promise was scored 1–5 across five dimensions using LLM analysis grounded in real policy data.
+          Higher score = more feasible.
+        </p>
+        <div style={{ display: "flex", gap: 40, alignItems: "flex-start" }}>
+          <div style={{ flex: "0 0 400px", height: 320 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart data={feasibilityRadarData}>
+                <PolarGrid stroke={border} />
+                <PolarAngleAxis dataKey="dim" tick={{ fontFamily: sans, fontSize: 12, fill: gray }} />
+                <Radar name="ADMK" dataKey="ADMK" stroke={admkColor} fill={admkColor} fillOpacity={0.12} strokeWidth={2} dot />
+                <Radar name="DMK"  dataKey="DMK"  stroke={dmkColor}  fill={dmkColor}  fillOpacity={0.12} strokeWidth={2} dot />
+                <Radar name="TVK"  dataKey="TVK"  stroke={tvkColor}  fill={tvkColor}  fillOpacity={0.12} strokeWidth={2} dot />
+                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontFamily: sans, fontSize: 12 }} />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 32px" }}>
+              {[
+                { dim: "Fiscal",    desc: "Can the state afford it?" },
+                { dim: "Legal",     desc: "Does the state have jurisdiction?" },
+                { dim: "Admin",     desc: "Does delivery capacity exist?" },
+                { dim: "Timeline",  desc: "Achievable within a 5-year term?" },
+                { dim: "Political", desc: "Does it have broad political support?" },
+              ].map(({ dim, desc }) => (
+                <div key={dim} style={{ padding: "16px 0", borderBottom: `1px solid ${border}` }}>
+                  <div style={{ fontFamily: sans, fontSize: 12, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase" as const, color: dark, marginBottom: 4 }}>{dim}</div>
+                  <div style={{ fontFamily: serif, fontSize: 13, color: gray, lineHeight: 1.5 }}>{desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Promise Novelty */}
+      <section style={{ padding: "0 0 48px", borderTop: `1px solid ${border}` }}>
+        <h2 style={{ fontFamily: serif, fontSize: 28, fontWeight: 400, color: dark, margin: "32px 0 6px" }}>
+          How much is genuinely new?
+        </h2>
+        <p style={{ fontFamily: serif, fontSize: 15, lineHeight: "28px", color: "#2e2e2e", margin: "0 0 24px" }}>
+          Each promise classified against existing schemes: truly new, an expansion, an amendment or a continuation.
+        </p>
+        <div style={{ height: 240 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={noveltyData} barCategoryGap="28%" barGap={3}>
+              <XAxis dataKey="label" tick={{ fontFamily: sans, fontSize: 12, fill: gray }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontFamily: mono, fontSize: 11, fill: gray }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ fontFamily: sans, fontSize: 12, border: `1px solid ${border}`, borderRadius: 4 }} cursor={{ fill: "#f5f3ee" }} />
+              <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontFamily: sans, fontSize: 12 }} />
+              <Bar dataKey="admk" name="ADMK" fill={admkColor} radius={[3,3,0,0]} />
+              <Bar dataKey="dmk"  name="DMK"  fill={dmkColor}  radius={[3,3,0,0]} />
+              <Bar dataKey="tvk"  name="TVK"  fill={tvkColor}  radius={[3,3,0,0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </section>
+    </>
+  );
+}
+
+// ── Demography Tab ────────────────────────────────────────────────────────
+
+function DemographyTab() {
+  return (
+    <section style={{ padding: "0px 0" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <div>
+          <h2 style={{ fontFamily: serif, fontSize: 34, fontWeight: 400, color: dark, margin: "32px 0 0", lineHeight: 1.2 }}>
+            Who do the manifestos speak to?
+          </h2>
+          <p style={{ fontFamily: serif, fontSize: 16, lineHeight: "30px", color: "#2e2e2e", marginTop: 4, marginBottom: 0 }}>
+            Promises targeting specific communities — filter by gender, age, caste, sector or geography.
+            Combine chips (AND) to find intersectional targeting, toggle Reach vs Share, click any bar to drill into the underlying promises.
+          </p>
+        </div>
+
+        <DemographyExplorer />
+
+        <p style={{ fontFamily: serif, fontSize: 13, color: gray, fontStyle: "italic", marginTop: 4 }}>
+          Counts scaled from {allPoints.length} enriched sample points to full manifesto totals.
+          Drill-down shows real promise titles from the current sample.
+        </p>
+
+        {/* Urban vs Rural */}
+        <div style={{ borderTop: `1px solid ${border}`, paddingTop: 32 }}>
+          <h3 style={{ fontFamily: serif, fontSize: 22, fontWeight: 400, color: dark, margin: "0 0 6px" }}>
+            Urban vs Rural reach
+          </h3>
+          <p style={{ fontFamily: serif, fontSize: 14, color: "#2e2e2e", lineHeight: "26px", margin: "0 0 20px" }}>
+            Promises by geographic focus — statewide, urban-only or rural-only.
+          </p>
+          <div style={{ height: 220 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={urbanRuralData} barCategoryGap="28%" barGap={3}>
+                <XAxis dataKey="label" tick={{ fontFamily: sans, fontSize: 12, fill: gray }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontFamily: mono, fontSize: 11, fill: gray }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ fontFamily: sans, fontSize: 12, border: `1px solid ${border}`, borderRadius: 4 }} cursor={{ fill: "#f5f3ee" }} />
+                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontFamily: sans, fontSize: 12 }} />
+                <Bar dataKey="admk" name="ADMK" fill={admkColor} radius={[3,3,0,0]} />
+                <Bar dataKey="dmk"  name="DMK"  fill={dmkColor}  radius={[3,3,0,0]} />
+                <Bar dataKey="tvk"  name="TVK"  fill={tvkColor}  radius={[3,3,0,0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Fact Check Tab ────────────────────────────────────────────────────────
+
+function FactCheckTab() {
+  const [partyFilter, setPartyFilter] = useState<string | null>(null);
+  const filtered: FactCheck[] = partyFilter ? factChecks.filter(fc => fc.party === partyFilter) : factChecks;
+
+  const verdictCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    filtered.forEach(fc => { counts[fc.verdict] = (counts[fc.verdict] || 0) + 1; });
+    return counts;
+  }, [filtered]);
+
+  const verdictColor = (v: string) =>
+    v === "Accurate" ? "#1C804C" : v === "Disputed" ? "rgb(176,90,42)" : v === "Unlikely" ? "#d43d51" : "rgb(138,117,32)";
+
+  return (
+    <section style={{ padding: "32px 0" }}>
+      <div style={{ paddingBottom: 24 }}>
+        <h2 style={{ fontFamily: serif, fontSize: 34, fontWeight: 400, color: dark, margin: 0, lineHeight: 1.2 }}>
+          Fact-checking the manifestos
+        </h2>
+        <p style={{ fontFamily: serif, fontSize: 16, lineHeight: "30px", color: "#2e2e2e", marginTop: 4 }}>
+          Key claims verified against available data, official records and legal texts — rated Accurate, Disputed, Aspirational or Unlikely.
+        </p>
+        <div style={{ display: "flex", gap: 16, marginTop: 16 }}>
+          {(["Accurate", "Aspirational", "Disputed", "Unlikely"] as const)
+            .filter(v => verdictCounts[v] !== undefined)
+            .map(verdict => ({ verdict, count: verdictCounts[verdict] }))
+            .map(({ verdict, count }) => (
+            <div key={verdict} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ width: 10, height: 10, borderRadius: "50%", background: verdictColor(verdict) }} />
+              <span style={{ fontFamily: sans, fontSize: 12, color: gray }}>
+                {count} <span style={{ fontWeight: 600, color: dark }}>{verdict}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
+        {[{ label: "All", value: null as string | null }, ...PARTY_LABELS.map(l => ({ label: l, value: l }))].map(f => (
+          <button key={f.label} onClick={() => setPartyFilter(f.value)} style={{
+            fontFamily: sans, fontSize: 12, fontWeight: 500, padding: "7px 12px",
+            borderRadius: 4, cursor: "pointer",
+            background: partyFilter === f.value ? dark : "transparent",
+            color: partyFilter === f.value ? "#fff" : "#1a1a1a",
+            borderWidth: 1, borderStyle: "solid",
+            borderColor: partyFilter === f.value ? dark : border,
+          }}>{f.label}</button>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {filtered.map((fc, i) => (
+          <div key={i} style={{ padding: "24px 0", borderTop: `1px solid ${border}` }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ width: 12, height: 12, background: fc.color, borderRadius: 3 }} />
+                <span style={{ fontFamily: sans, fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#1a1a1a" }}>
+                  {fc.party}
+                </span>
+                <span style={{ fontFamily: mono, fontSize: 11, color: gray, marginLeft: 4 }}>Promise {fc.num}</span>
+              </div>
+              <div style={{
+                padding: "6px 12px", borderRadius: 4,
+                background: fc.verdict === "Accurate" ? "#1C804C" : fc.verdict === "Disputed" ? "#BA5C3B" : fc.verdict === "Unlikely" ? "#d43d51" : "#D76405",
+                color: "#fff", fontFamily: sans, fontSize: 10.5, fontWeight: 700,
+                letterSpacing: "0.12em", textTransform: "uppercase" as const,
+              }}>{fc.verdict}</div>
+            </div>
+            <div style={{ fontFamily: serif, fontSize: 20, color: dark, lineHeight: 1.5, marginBottom: 14 }}>{fc.claim}</div>
+            <div style={{ fontFamily: serif, fontSize: 15, color: "#6b6b6b", lineHeight: 1.65, fontStyle: "italic", borderLeft: `3px solid ${fc.verdictColor}`, paddingLeft: 16 }}>
+              <span style={{ fontWeight: 700, fontStyle: "normal", color: "#1a1a1a" }}>Fact: </span>
+              {fc.analysis}
+            </div>
+            {fc.evidence.length > 0 && (
+              <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 8 }}>
+                <span style={{ fontFamily: sans, fontSize: 11, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase" as const, color: gray }}>
+                  Sources
+                </span>
+                {fc.evidence.map((ev: FactCheckEvidence, j: number) => (
+                  <div key={j} style={{ display: "flex", flexDirection: "column", gap: 3, paddingLeft: 0 }}>
+                    {ev.url ? (
+                      <a href={ev.url} target="_blank" rel="noopener noreferrer" style={{
+                        fontFamily: sans, fontSize: 12, fontWeight: 600, color: fc.color,
+                        textDecoration: "none", lineHeight: 1.4,
+                      }}
+                        onMouseEnter={e => (e.currentTarget.style.textDecoration = "underline")}
+                        onMouseLeave={e => (e.currentTarget.style.textDecoration = "none")}
+                      >
+                        {ev.title}
+                        <svg style={{ marginLeft: 4, verticalAlign: "middle", opacity: 0.7 }} width="10" height="10" viewBox="0 0 10 10" fill="none">
+                          <path d="M1.5 8.5L8.5 1.5M8.5 1.5H3.5M8.5 1.5V6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </a>
+                    ) : (
+                      <span style={{ fontFamily: sans, fontSize: 12, fontWeight: 600, color: fc.color }}>{ev.title}</span>
+                    )}
+                    {ev.snippet && (
+                      <span style={{ fontFamily: serif, fontSize: 12, color: gray, lineHeight: 1.55, fontStyle: "italic" }}>
+                        "{ev.snippet}"
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ── App Root ──────────────────────────────────────────────────────────────
+
+export default function App() {
+  const [activeTab, setActiveTab] = useState("Dashboard");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  return (
+    <div style={{ background: "#fff" }}>
+      <div style={{ maxWidth: 1176, margin: "0 auto", padding: "0 32px" }}>
+        <NavBar activeTab={activeTab} setActiveTab={setActiveTab} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+        {activeTab === "Search"     && <SearchTab query={searchQuery} />}
+        {activeTab === "Dashboard"  && <DashboardTab />}
+        {activeTab === "Compare"    && <section style={{ padding: "0px 0" }}><CompareGrid /></section>}
+        {activeTab === "Demography" && <DemographyTab />}
+        {activeTab === "Fact Check" && <FactCheckTab />}
+      </div>
+    </div>
+  );
+}
