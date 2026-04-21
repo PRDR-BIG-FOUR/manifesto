@@ -2036,7 +2036,12 @@
         "beneficiary": {
           "geography": {
             "scope": "statewide",
-            "regions": []
+            "regions": [
+              {
+                "type": "city",
+                "name": "Thanjavur"
+              }
+            ]
           },
           "gender": [
             "all"
