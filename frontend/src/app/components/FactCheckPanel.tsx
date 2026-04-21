@@ -1,28 +1,31 @@
 import React, { useMemo, useState } from "react";
-import { factChecks, PARTY_LABELS, PARTY_COLORS_BY_LABEL, type FactCheck, type FactCheckEvidence } from "../manifestoData";
+import { 
+  factChecks, PARTY_LABELS, PARTY_COLORS_BY_LABEL, 
+  type FactCheck, type FactCheckEvidence,
+} from "../manifestoData";
 
-const sans  = '"Inter Tight", sans-serif';
+const sans = '"Inter Tight", sans-serif';
 const serif = '"Source Serif 4", serif';
-const mono  = '"IBM Plex Mono", monospace';
-const dark  = "#121212";
-const gray  = "#6b6b6b";
+const mono = '"IBM Plex Mono", monospace';
+const dark = "#121212";
+const gray = "#6b6b6b";
 const border = "#d9d7d2";
 const brown = "#a16749";
 const PARTY_COLOR = PARTY_COLORS_BY_LABEL;
 
-type Verdict = "Accurate" | "Aspirational" | "Disputed" | "Unlikely";
-const VERDICTS: Verdict[] = ["Accurate", "Aspirational", "Disputed", "Unlikely"];
+type Verdict = "Feasible" | "Aspirational" | "Disputed" | "Unlikely";
+const VERDICTS: Verdict[] = ["Feasible", "Aspirational", "Disputed", "Unlikely"];
 
 const VERDICT_COLORS: Record<Verdict, string> = {
-  Accurate:     "#1C804C",
+  Feasible: "#1C804C",
   Aspirational: "#D76405",
-  Disputed:     "#BA5C3B",
-  Unlikely:     "#d43d51",
+  Disputed: "#BA5C3B",
+  Unlikely: "#d43d51",
 };
 
-// Unlikely is most concerning, then Disputed, then Aspirational, then Accurate.
+// Unlikely is most concerning, then Disputed, then Aspirational, then Feasible.
 const VERDICT_SEVERITY: Record<Verdict, number> = {
-  Unlikely: 4, Disputed: 3, Aspirational: 2, Accurate: 1,
+  Unlikely: 4, Disputed: 3, Aspirational: 2, Feasible: 1,
 };
 
 type SortKey = "severity" | "party" | "theme" | "order";
@@ -33,7 +36,7 @@ export function FactCheckPanel() {
   const [themeFilter, setThemeFilter] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("order");
-  const [openRisks, setOpenRisks] = useState<Set<string>>(new Set());
+  const [openHurdles, setOpenHurdles] = useState<Set<string>>(new Set());
 
   const allThemes = useMemo(() => {
     const set = new Map<string, string>();
@@ -51,7 +54,7 @@ export function FactCheckPanel() {
     if (q) items = items.filter(fc =>
       fc.claim.toLowerCase().includes(q) ||
       fc.analysis.toLowerCase().includes(q) ||
-      fc.keyRisks.some(r => r.toLowerCase().includes(q))
+      fc.keyHurdles.some(h => h.toLowerCase().includes(q))
     );
 
     if (sortKey === "severity") {
@@ -70,7 +73,7 @@ export function FactCheckPanel() {
     return next;
   });
 
-  const toggleRisks = (id: string) => setOpenRisks(prev => {
+  const toggleHurdles = (id: string) => setOpenHurdles((prev: Set<string>) => {
     const next = new Set(prev);
     if (next.has(id)) next.delete(id); else next.add(id);
     return next;
@@ -95,19 +98,16 @@ export function FactCheckPanel() {
         </h2>
         <p style={{ fontFamily: serif, fontSize: 16, lineHeight: "30px", color: "#2e2e2e", marginTop: 4, marginBottom: 0 }}>
           {factChecks.length} key claims verified against data, official records and legal texts —
-          rated Accurate, Aspirational, Disputed or Unlikely.
+          rated Feasible, Aspirational, Disputed or Unlikely.
         </p>
       </div>
-
-      {/* Party summary strip */}
-      <PartySummaryStrip />
 
       {/* Sticky controls */}
       <div style={{
         position: "sticky" as const, top: 0, zIndex: 10,
         background: "#fff",
         borderTop: `1px solid ${border}`, borderBottom: `1px solid ${border}`,
-        padding: "14px 0", margin: "24px 0 20px",
+        padding: "14px 0", margin: "16px 0 24px",
         display: "flex", flexDirection: "column", gap: 10,
       }}>
         {/* Row 1: search + sort + reset */}
@@ -123,7 +123,7 @@ export function FactCheckPanel() {
               <line x1="8.85" y1="9.35" x2="12" y2="12.5" stroke={query ? brown : dark} strokeWidth="0.98" />
             </svg>
             <input
-              placeholder="Search claims, analysis, risks…"
+              placeholder="Search claims, analysis, hurdles…"
               value={query} onChange={e => setQuery(e.target.value)}
               style={{
                 border: "none", outline: "none", background: "transparent", flex: 1,
@@ -211,33 +211,43 @@ export function FactCheckPanel() {
         </div>
       </div>
 
+      {/* Party summary strip */}
+      <PartySummaryStrip activeParty={partyFilter} onSelectParty={p => setPartyFilter(p)} />
+
+
+
       {/* Results */}
+      <div style={{ paddingTop: 20, borderTop: `1px solid ${border}` }}>
       {filtered.length === 0 ? (
         <div style={{ padding: "64px 0", textAlign: "center" as const, fontFamily: serif, fontSize: 18, color: gray }}>
           No fact checks match the current filters.
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          {filtered.map((fc, i) => (
-            <FactCheckCard
-              key={`${fc.party}-${fc.pointNumber}`}
-              fc={fc}
-              first={i === 0}
-              risksOpen={openRisks.has(`${fc.party}-${fc.pointNumber}`)}
-              onToggleRisks={() => toggleRisks(`${fc.party}-${fc.pointNumber}`)}
-            />
-          ))}
+        <div style={{ display: "flex", flexDirection: "column", paddingBottom: 48 }}>
+          {filtered.map((fc, i) => {
+            const id = `${fc.party}-${fc.pointNumber}-${i}`;
+            return (
+              <FactCheckCard
+                key={id}
+                fc={fc}
+                first={i === 0}
+                hurdlesOpen={openHurdles.has(id)}
+                onToggleHurdles={() => toggleHurdles(id)}
+              />
+            );
+          })}
         </div>
       )}
+      </div>
     </section>
   );
 }
 
 // ── Party summary strip ─────────────────────────────────────────────────────
 
-function PartySummaryStrip() {
+function PartySummaryStrip({ activeParty, onSelectParty }: { activeParty: string | null; onSelectParty: (p: string) => void }) {
   const byParty = useMemo(() => {
-    const init = () => ({ Accurate: 0, Aspirational: 0, Disputed: 0, Unlikely: 0, total: 0 });
+    const init = () => ({ Feasible: 0, Aspirational: 0, Disputed: 0, Unlikely: 0, total: 0 });
     const map: Record<string, ReturnType<typeof init>> = {};
     for (const label of PARTY_LABELS) map[label] = init();
     for (const fc of factChecks) {
@@ -249,20 +259,26 @@ function PartySummaryStrip() {
   }, []);
 
   return (
-    <div style={{
+    <div className="mobile-grid-1" style={{
       display: "grid", gridTemplateColumns: `repeat(${PARTY_LABELS.length}, 1fr)`, gap: 12,
       marginTop: 20,
     }}>
       {PARTY_LABELS.map(label => {
         const s = byParty[label];
         const color = PARTY_COLOR[label];
-        const accuratePct = s.total > 0 ? (s.Accurate / s.total) * 100 : 0;
+        const feasiblePct = s.total > 0 ? (s.Feasible / s.total) * 100 : 0;
+        const isActive = activeParty === label;
         return (
-          <div key={label} style={{
-            border: `1px solid ${border}`, borderRadius: 8,
-            padding: "14px 18px", background: "#fff",
-            display: "flex", flexDirection: "column", gap: 10,
-          }}>
+          <div
+            key={label}
+            onClick={() => onSelectParty(label)}
+            style={{
+              border: `1px solid ${isActive ? color : border}`, borderRadius: 8,
+              padding: "14px 18px", background: isActive ? color + "0a" : "#fff",
+              display: "flex", flexDirection: "column", gap: 10,
+              cursor: "pointer", transition: "border-color 0.15s, background 0.15s",
+            }}
+          >
             <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
               <span style={{
                 fontFamily: sans, fontSize: 12, fontWeight: 700, letterSpacing: "0.14em",
@@ -272,10 +288,10 @@ function PartySummaryStrip() {
             </div>
 
             <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-              <span style={{ fontFamily: serif, fontSize: 32, fontWeight: 500, color: VERDICT_COLORS.Accurate, lineHeight: 1 }}>
-                {Math.round(accuratePct)}%
+              <span style={{ fontFamily: serif, fontSize: 32, fontWeight: 500, color: VERDICT_COLORS.Feasible, lineHeight: 1 }}>
+                {Math.round(feasiblePct)}%
               </span>
-              <span style={{ fontFamily: sans, fontSize: 12, color: gray }}>rated accurate</span>
+              <span style={{ fontFamily: sans, fontSize: 12, color: gray }}>rated feasible</span>
             </div>
 
             {/* Stacked verdict bar */}
@@ -308,15 +324,15 @@ function PartySummaryStrip() {
 
 // ── Fact check card ─────────────────────────────────────────────────────────
 
-function FactCheckCard({ fc, first, risksOpen, onToggleRisks }: {
+function FactCheckCard({ fc, first, hurdlesOpen, onToggleHurdles }: {
   fc: FactCheck;
   first: boolean;
-  risksOpen: boolean;
-  onToggleRisks: () => void;
+  hurdlesOpen: boolean;
+  onToggleHurdles: () => void;
 }) {
   return (
-    <div style={{
-      padding: "24px 0",
+    <div className="mobile-px-sm" style={{
+      padding: "24px 20px",
       borderTop: first ? `1px solid ${border}` : `1px solid ${border}`,
     }}>
       {/* Header row */}
@@ -363,35 +379,35 @@ function FactCheckCard({ fc, first, risksOpen, onToggleRisks }: {
         {fc.analysis}
       </div>
 
-      {/* Key risks */}
-      {fc.keyRisks.length > 0 && (
+      {/* Key hurdles */}
+      {fc.keyHurdles.length > 0 && (
         <div style={{ marginTop: 14 }}>
-          <button onClick={onToggleRisks} style={{
+          <button onClick={onToggleHurdles} style={{
             display: "inline-flex", alignItems: "center", gap: 8,
-            background: risksOpen ? "#fef2ed" : "#faf8f4",
-            border: `1px solid ${risksOpen ? VERDICT_COLORS.Disputed : border}`,
+            background: hurdlesOpen ? "#fef2ed" : "#faf8f4",
+            border: `1px solid ${hurdlesOpen ? VERDICT_COLORS.Disputed : border}`,
             borderRadius: 4, padding: "6px 12px", cursor: "pointer",
             fontFamily: sans, fontSize: 11, fontWeight: 700,
             letterSpacing: "0.08em", textTransform: "uppercase" as const,
-            color: risksOpen ? VERDICT_COLORS.Disputed : dark,
+            color: hurdlesOpen ? VERDICT_COLORS.Disputed : dark,
           }}>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{
-              transform: risksOpen ? "rotate(90deg)" : "none", transition: "transform 0.15s",
+              transform: hurdlesOpen ? "rotate(90deg)" : "none", transition: "transform 0.15s",
             }}>
               <path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            {fc.keyRisks.length} key risk{fc.keyRisks.length !== 1 ? "s" : ""}
+            {fc.keyHurdles.length} key hurdle{fc.keyHurdles.length !== 1 ? "s" : ""}
           </button>
-          {risksOpen && (
+          {hurdlesOpen && (
             <ul style={{
               margin: "10px 0 0", padding: "0 0 0 22px",
               display: "flex", flexDirection: "column", gap: 6,
             }}>
-              {fc.keyRisks.map((risk, j) => (
+              {fc.keyHurdles.map((hurdle, j) => (
                 <li key={j} style={{
                   fontFamily: serif, fontSize: 14, color: "#2e2e2e", lineHeight: 1.5,
                   listStyleType: "'— '" as const,
-                }}>{risk}</li>
+                }}>{hurdle}</li>
               ))}
             </ul>
           )}
@@ -416,7 +432,7 @@ function FactCheckCard({ fc, first, risksOpen, onToggleRisks }: {
                 >
                   {ev.title}
                   <svg style={{ marginLeft: 4, verticalAlign: "middle", opacity: 0.7 }} width="10" height="10" viewBox="0 0 10 10" fill="none">
-                    <path d="M1.5 8.5L8.5 1.5M8.5 1.5H3.5M8.5 1.5V6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M1.5 8.5L8.5 1.5M8.5 1.5H3.5M8.5 1.5V6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </a>
               ) : (

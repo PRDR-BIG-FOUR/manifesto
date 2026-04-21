@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import { allPoints, TOTALS, sampleSizes, type ManifestoPoint } from "../manifestoData";
 
 const sans  = '"Inter Tight", sans-serif';
@@ -83,7 +83,7 @@ function buildStats(): GroupStats[] {
 }
 
 export function DemographyExplorer() {
-  const [mode, setMode] = useState<"reach" | "share">("reach");
+  const mode = "share" as const;
   const [drill, setDrill] = useState<{ group: string; party: PartyKey } | null>(null);
   const stats = useMemo(buildStats, []);
 
@@ -92,29 +92,13 @@ export function DemographyExplorer() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      {/* Toggle + help */}
+      {/* Help text */}
       <div style={{
         display: "flex", flexWrap: "wrap" as const, alignItems: "center", gap: 14,
         padding: "14px 0", borderTop: `1px solid ${border}`, borderBottom: `1px solid ${border}`,
       }}>
-        <div style={{
-          display: "inline-flex", alignItems: "center",
-          border: `1px solid ${border}`, borderRadius: 4, padding: 2, background: "#faf9f6",
-        }}>
-          {(["reach", "share"] as const).map(m => (
-            <button key={m} onClick={() => setMode(m)} style={{
-              padding: "5px 12px", borderRadius: 3, cursor: "pointer",
-              background: mode === m ? dark : "transparent",
-              color: mode === m ? "#fff" : dark, border: "none",
-              fontFamily: sans, fontSize: 11, fontWeight: 600,
-              letterSpacing: "0.8px", textTransform: "uppercase" as const,
-            }}>{m === "reach" ? "Reach" : "Share"}</button>
-          ))}
-        </div>
         <span style={{ fontFamily: serif, fontSize: 14, color: "#2e2e2e", fontStyle: "italic", lineHeight: 1.45, flex: 1, minWidth: 280 }}>
-          {mode === "reach"
-            ? "Absolute promise counts per party — tells you who made the most promises."
-            : "% of each party's manifesto devoted to this group — tells you who cared most."}
+          % of each party's manifesto devoted to this group — tells you who cared most.
         </span>
         <span style={{ fontFamily: sans, fontSize: 11, color: gray, letterSpacing: "0.6px", textTransform: "uppercase" as const }}>
           Click any card to see the promises
@@ -122,7 +106,7 @@ export function DemographyExplorer() {
       </div>
 
       {/* Card grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         {stats.map(stat => (
           <GroupCard
             key={stat.group.key}
@@ -138,75 +122,170 @@ export function DemographyExplorer() {
         ))}
       </div>
 
-      {/* Drill panel */}
+      {/* Drill modal */}
       {drill && drillStat && (
+        <DrillModal
+          drill={drill}
+          drillStat={drillStat}
+          drillPts={drillPts}
+          onClose={() => setDrill(null)}
+        />
+      )}
+
+      {/* Footnote */}
+      <p style={{ fontFamily: serif, fontSize: 13, color: gray, fontStyle: "italic", margin: 0 }}>
+        Share percentages are derived from {allPoints.length} analysed promises across the three manifestos.
+        Leader badge marks the party that devotes the highest % of its manifesto to each group.
+      </p>
+    </div>
+  );
+}
+
+// ── Drill modal ─────────────────────────────────────────────────────────────
+
+function DrillModal({ drill, drillStat, drillPts, onClose }: {
+  drill: { group: string; party: PartyKey };
+  drillStat: GroupStats;
+  drillPts: ManifestoPoint[];
+  onClose: () => void;
+}) {
+  const [query, setQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
+  const party = PARTIES.find(p => p.key === drill.party)!;
+
+  useEffect(() => {
+    searchRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const q = query.toLowerCase().trim();
+  const visible = q
+    ? drillPts.filter(p =>
+        (p.title && p.title.toLowerCase().includes(q)) ||
+        p.text.toLowerCase().includes(q) ||
+        p.tags.some(t => t.toLowerCase().includes(q)) ||
+        p.sectionTitle.toLowerCase().includes(q)
+      )
+    : drillPts;
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 100,
+        background: "rgba(18,18,18,0.55)",
+        backdropFilter: "blur(6px)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "32px 24px",
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: "#fff", borderRadius: 10,
+          width: "100%", maxWidth: 680,
+          maxHeight: "80vh",
+          display: "flex", flexDirection: "column",
+          boxShadow: "0 24px 64px rgba(0,0,0,0.18)",
+          overflow: "hidden",
+        }}
+      >
+        {/* Header */}
         <div style={{
-          border: `1px solid ${border}`, borderRadius: 6, padding: "18px 20px",
-          background: "#fcfbf7",
+          padding: "20px 24px 0",
+          borderBottom: `1px solid ${border}`,
+          flexShrink: 0,
         }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ width: 10, height: 10, borderRadius: 2, background: PARTIES.find(p => p.key === drill.party)!.color }} />
+              <span style={{ width: 10, height: 10, borderRadius: 2, background: party.color, flexShrink: 0 }} />
               <span style={{
-                fontFamily: sans, fontSize: 12, fontWeight: 700, letterSpacing: "0.1em",
-                textTransform: "uppercase" as const, color: PARTIES.find(p => p.key === drill.party)!.color,
-              }}>{PARTIES.find(p => p.key === drill.party)!.label}</span>
+                fontFamily: sans, fontSize: 12, fontWeight: 700,
+                letterSpacing: "0.1em", textTransform: "uppercase" as const, color: party.color,
+              }}>{party.label}</span>
               <span style={{ fontFamily: serif, fontSize: 16, color: dark }}>
                 promises targeting <strong>{drillStat.group.label}</strong>
               </span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <span style={{ fontFamily: mono, fontSize: 11, color: gray }}>
-                {drillPts.length} of {TOTALS[drill.party]} promises
+                {visible.length} of {drillPts.length}
               </span>
-              <button onClick={() => setDrill(null)} style={{
+              <button onClick={onClose} style={{
                 background: "none", border: "none", cursor: "pointer",
-                fontFamily: sans, fontSize: 18, color: gray, lineHeight: 1, padding: 0,
+                fontFamily: sans, fontSize: 22, color: gray, lineHeight: 1, padding: 0,
               }}>×</button>
             </div>
           </div>
-          {drillPts.length === 0 ? (
-            <div style={{ fontFamily: serif, fontSize: 14, color: gray, fontStyle: "italic" }}>
-              No promises found for this combination.
+
+          {/* Search */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: 8,
+            border: `1px solid ${query ? party.color : border}`,
+            borderRadius: 6, padding: "8px 12px",
+            background: "#faf9f6", marginBottom: 14,
+            transition: "border-color 0.15s",
+          }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+              <circle cx="5.7" cy="6.2" r="4.2" stroke={query ? party.color : gray} strokeWidth="1" />
+              <line x1="8.85" y1="9.35" x2="12" y2="12.5" stroke={query ? party.color : gray} strokeWidth="1" />
+            </svg>
+            <input
+              ref={searchRef}
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Search promises…"
+              style={{
+                border: "none", outline: "none", background: "transparent", flex: 1,
+                fontFamily: sans, fontSize: 13, color: dark,
+              }}
+            />
+            {query && (
+              <button onClick={() => setQuery("")} style={{
+                background: "none", border: "none", cursor: "pointer",
+                color: gray, fontSize: 16, lineHeight: 1, padding: 0,
+              }}>×</button>
+            )}
+          </div>
+        </div>
+
+        {/* Promise list */}
+        <div style={{ overflowY: "auto", padding: "0 24px 24px" }}>
+          {visible.length === 0 ? (
+            <div style={{ padding: "40px 0", textAlign: "center" as const, fontFamily: serif, fontSize: 15, color: gray, fontStyle: "italic" }}>
+              No promises match "{query}"
             </div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              {drillPts.map((p, i) => (
-                <div key={i} style={{ padding: "12px 0", borderTop: i === 0 ? "none" : `1px solid ${border}` }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-                    <span style={{ fontFamily: mono, fontSize: 11, color: gray }}>#{p.pointNumber}</span>
-                    {p.sectionTitle && <span style={{ fontFamily: mono, fontSize: 11, color: gray }}>§ {p.sectionTitle}</span>}
-                  </div>
-                  <div style={{ fontFamily: serif, fontSize: 15, color: dark, lineHeight: 1.45, fontWeight: 500 }}>
-                    {p.title || p.text.slice(0, 140) + (p.text.length > 140 ? "…" : "")}
-                  </div>
-                  {p.tags.length > 0 && (
-                    <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6, marginTop: 8 }}>
-                      {p.tags.slice(0, 5).map(tag => {
-                        const c = PARTIES.find(pp => pp.key === drill.party)!.color;
-                        return (
-                          <span key={tag} style={{
-                            fontFamily: sans, fontSize: 10, fontWeight: 600,
-                            padding: "2px 7px", borderRadius: 12,
-                            background: c + "18", border: `1px solid ${c}40`, color: c,
-                            letterSpacing: "0.04em",
-                          }}>{tag}</span>
-                        );
-                      })}
-                    </div>
+            visible.map((p, i) => (
+              <div key={i} style={{ padding: "14px 0", borderTop: `1px solid ${border}` }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                  <span style={{ fontFamily: mono, fontSize: 11, color: gray }}>#{p.pointNumber}</span>
+                  {p.sectionTitle && (
+                    <span style={{ fontFamily: mono, fontSize: 11, color: gray }}>§ {p.sectionTitle}</span>
                   )}
                 </div>
-              ))}
-            </div>
+                <div style={{ fontFamily: serif, fontSize: 15, color: dark, lineHeight: 1.5, fontWeight: 500 }}>
+                  {p.title || p.text}
+                </div>
+                {p.tags.length > 0 && (
+                  <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 5, marginTop: 8 }}>
+                    {p.tags.slice(0, 5).map(tag => (
+                      <span key={tag} style={{
+                        fontFamily: sans, fontSize: 10, fontWeight: 600,
+                        padding: "2px 7px", borderRadius: 12,
+                        background: party.color + "18", border: `1px solid ${party.color}40`,
+                        color: party.color, letterSpacing: "0.04em",
+                      }}>{tag}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))
           )}
         </div>
-      )}
-
-      {/* Footnote */}
-      <p style={{ fontFamily: serif, fontSize: 13, color: gray, fontStyle: "italic", margin: 0 }}>
-        Reach counts are derived from {allPoints.length} analysed promises across the three manifestos.
-        Leader badge marks the party with the most promises ({mode === "reach" ? "absolute" : "as % of own manifesto"}) for each group.
-      </p>
+      </div>
     </div>
   );
 }
@@ -258,16 +337,7 @@ function GroupCard({
             {stat.totalScaled} promises total
           </div>
         </div>
-        {leader && stat.leaderMargin > 0 && mode === "reach" && (
-          <div style={{
-            padding: "4px 10px", borderRadius: 12,
-            background: leader.color + "18", border: `1px solid ${leader.color}55`,
-            fontFamily: sans, fontSize: 10, fontWeight: 700,
-            letterSpacing: "0.1em", textTransform: "uppercase" as const, color: leader.color,
-            whiteSpace: "nowrap" as const,
-          }}>◆ {leader.label} leads</div>
-        )}
-        {leader && mode === "share" && (
+        {leader && (
           <div style={{
             padding: "4px 10px", borderRadius: 12,
             background: leader.color + "18", border: `1px solid ${leader.color}55`,
@@ -309,21 +379,20 @@ function GroupCard({
                 letterSpacing: "0.08em", textTransform: "uppercase" as const, color: party.color,
               }}>{party.label}</span>
               <div style={{
-                height: isLead ? 22 : 14,
-                background: "#f0eeea", borderRadius: isLead ? 4 : 7,
+                height: 16,
+                background: "#f0eeea", borderRadius: 7,
                 overflow: "hidden", position: "relative" as const,
                 outline: isThisDrilled ? `2px solid ${dark}` : "none",
-                transition: "height 0.2s",
               }}>
                 <div style={{
                   width: `${Math.min(100, pct)}%`, height: "100%",
-                  background: party.color, borderRadius: isLead ? 4 : 7,
+                  background: party.color, borderRadius: 7,
                   minWidth: val > 0 ? 6 : 0,
-                  transition: "width 0.4s ease, border-radius 0.2s",
+                  transition: "width 0.4s ease",
                 }} />
               </div>
               <span style={{
-                fontFamily: mono, fontSize: isLead ? 14 : 12,
+                fontFamily: mono, fontSize: 12,
                 fontWeight: isLead ? 700 : 500,
                 color: isLead ? party.color : dark,
                 textAlign: "right" as const, fontVariantNumeric: "tabular-nums" as const,

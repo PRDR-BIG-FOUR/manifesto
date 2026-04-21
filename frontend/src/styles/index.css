@@ -1,3 +1,34 @@
 @import './fonts.css';
 @import './tailwind.css';
 @import './theme.css';
+
+@media (max-width: 900px) {
+  .mobile-col { flex-direction: column !important; }
+  .mobile-col-reverse { flex-direction: column-reverse !important; }
+  .mobile-grid-1 { grid-template-columns: 1fr !important; }
+  .mobile-grid-2 { grid-template-columns: 1fr 1fr !important; }
+  .mobile-w-full { width: 100% !important; min-width: 0 !important; }
+  .mobile-h-auto { height: auto !important; }
+  .mobile-p-sm { padding: 16px !important; }
+  .mobile-px-sm { padding-left: 16px !important; padding-right: 16px !important; }
+  .mobile-py-sm { padding-top: 24px !important; padding-bottom: 24px !important; }
+  .mobile-no-border { border: none !important; border-bottom: 1px solid #d9d7d2 !important; }
+  .mobile-no-border-x { border-left: none !important; border-right: none !important; }
+  .mobile-text-center { text-align: center !important; }
+  .mobile-hero-title { font-size: 42px !important; }
+  .mobile-hero-subtitle { font-size: 16px !important; line-height: 1.4 !important; }
+  .mobile-nav { overflow-x: auto !important; white-space: nowrap !important; padding-bottom: 8px !important; justify-content: flex-start !important; gap: 16px !important; }
+  .mobile-nav::-webkit-scrollbar { display: none; }
+  .mobile-gap-sm { gap: 16px !important; }
+  .mobile-logo { margin-right: 0 !important; width: 70px !important; min-width: 70px !important; margin-left: auto !important; margin-right: auto !important; align-self: center !important; }
+  .mobile-basis-initial { flex-basis: auto !important; }
+  .mobile-align-start { align-items: flex-start !important; }
+  
+  /* Map specifics */
+  .mobile-map-container { flex-direction: column !important; }
+  .mobile-map-details {
+    width: 100% !important;
+    margin-top: 16px !important;
+  }
+}
+
