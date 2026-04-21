@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from "react";
 import { Wheat, GraduationCap, Briefcase, Landmark, Factory, HardHat, HandCoins, Users, Palette, Scale, TrendingUp, MoreHorizontal } from "lucide-react";
-import { sectorData, TOTALS } from "../manifestoData";
+import { sectorData, TOTALS, THEME_COUNT, PARTY_LABELS, allPoints } from "../manifestoData";
+import { PromiseModal } from "./PromiseModal";
 import {
   ResponsiveContainer, Tooltip,
-  Treemap,
 } from "recharts";
 
 const sans  = '"Inter Tight", sans-serif';
@@ -39,7 +39,7 @@ const topicIcons: Record<string, React.ReactNode> = {
   "Other":                  <MoreHorizontal size={14} strokeWidth={1.5} />,
 };
 
-type ViewMode = "verdicts" | "priorities" | "duels" | "treemap";
+type ViewMode = "verdicts" | "priorities" | "duels";
 
 // ── Data helpers ────────────────────────────────────────────────────────────
 
@@ -92,14 +92,14 @@ function buildVerdict(r: ThemeRow): string {
   return `${top.label} leads (${top.v}), ${mid.label} (${mid.v}), ${bot.label} (${bot.v}).`;
 }
 
-function VerdictsView({ rows }: { rows: ThemeRow[] }) {
+function VerdictsView({ rows, onDrill }: { rows: ThemeRow[], onDrill: (p: PartyKey, t: string) => void }) {
   const maxTotal = Math.max(1, ...rows.map(r => r.total));
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
       {rows.map((r, i) => {
         const leaderMeta = PARTY_META[r.leader];
         return (
-          <div key={r.name} style={{
+          <div className="mobile-grid-1 mobile-gap-sm" key={r.name} style={{
             display: "grid", gridTemplateColumns: "220px 1fr",
             alignItems: "center", gap: 24,
             padding: "22px 0",
@@ -146,7 +146,8 @@ function VerdictsView({ rows }: { rows: ThemeRow[] }) {
                       color: "#fff", fontFamily: mono, fontSize: 11, fontWeight: 700,
                       textShadow: "0 1px 2px rgba(0,0,0,0.25)",
                       minWidth: v > 0 ? 18 : 0,
-                    }}>
+                      cursor: v > 0 ? "pointer" : "default",
+                    }} onClick={() => v > 0 && onDrill(k, r.name)}>
                       {pct >= 9 ? v : ""}
                     </div>
                   );
@@ -186,13 +187,13 @@ function buildPriorities(rows: ThemeRow[]): PartyPriority[] {
   });
 }
 
-function PrioritiesView({ rows }: { rows: ThemeRow[] }) {
+function PrioritiesView({ rows, onDrill }: { rows: ThemeRow[], onDrill: (p: PartyKey, t: string) => void }) {
   const priorities = useMemo(() => buildPriorities(rows), [rows]);
   // Max % across parties for consistent bar scale
   const maxPct = Math.max(1, ...priorities.flatMap(p => p.themes.slice(0, 6).map(t => t.pct)));
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
+    <div className="mobile-grid-1 mobile-gap-sm" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
       {priorities.map(p => {
         const top3 = p.themes.slice(0, 3);
         const top3Pct = top3.reduce((a, b) => a + b.pct, 0);
@@ -238,7 +239,7 @@ function PrioritiesView({ rows }: { rows: ThemeRow[] }) {
                         {t.count} · {t.pct.toFixed(0)}%
                       </span>
                     </div>
-                    <div style={{ height: 8, background: "#f0eeea", borderRadius: 4, overflow: "hidden" }}>
+                    <div style={{ height: 8, background: "#f0eeea", borderRadius: 4, overflow: "hidden", cursor: t.count > 0 ? "pointer" : "default" }} onClick={() => t.count > 0 && onDrill(p.party, t.name)}>
                       <div style={{
                         width: `${Math.min(100, (t.pct / maxPct) * 100)}%`,
                         height: "100%", background: p.color, borderRadius: 4,
@@ -281,7 +282,7 @@ function PrioritiesView({ rows }: { rows: ThemeRow[] }) {
 
 type DuelPair = [PartyKey, PartyKey];
 
-function DuelsView({ rows }: { rows: ThemeRow[] }) {
+function DuelsView({ rows, onDrill }: { rows: ThemeRow[], onDrill: (p: PartyKey, t: string) => void }) {
   const [pair, setPair] = useState<DuelPair>(["admk", "dmk"]);
   const [a, b] = pair;
   const metaA = PARTY_META[a];
@@ -339,11 +340,11 @@ function DuelsView({ rows }: { rows: ThemeRow[] }) {
       </div>
 
       {/* Headline */}
-      <div style={{
+      <div className="mobile-grid-1" style={{
         display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0,
         border: `1px solid ${border}`, borderRadius: 8, overflow: "hidden",
       }}>
-        <div style={{ padding: "18px 22px", borderRight: `1px solid ${border}`, background: metaA.color + "0c" }}>
+        <div className="mobile-no-border" style={{ padding: "18px 22px", borderRight: `1px solid ${border}`, background: metaA.color + "0c" }}>
           <div style={{ fontFamily: sans, fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: metaA.color, marginBottom: 6 }}>
             {metaA.label} leads in
           </div>
@@ -372,155 +373,113 @@ function DuelsView({ rows }: { rows: ThemeRow[] }) {
       </div>
 
       {/* Diverging bars: left = A advantage, right = B advantage */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 200px 1fr", columnGap: 12, rowGap: 4, alignItems: "center" }}>
-        <div style={{ textAlign: "right" as const, fontFamily: sans, fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: metaA.color }}>
-          {metaA.label} advantage →
+      {/* Column header row */}
+      <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 2 }}>
+        <div style={{ flex: 1, textAlign: "right" as const, fontFamily: sans, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: metaA.color, paddingRight: 12 }}>
+          {metaA.label} →
         </div>
-        <div />
-        <div style={{ fontFamily: sans, fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: metaB.color }}>
-          ← {metaB.label} advantage
+        <div style={{ width: 180, flexShrink: 0 }} />
+        <div style={{ flex: 1, fontFamily: sans, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: metaB.color, paddingLeft: 12 }}>
+          ← {metaB.label}
         </div>
+      </div>
 
+      {/* Rows */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {sortedByGap.map(r => {
           const aVal = r[a];
           const bVal = r[b];
           const aPct = (aVal / maxAbs) * 100;
           const bPct = (bVal / maxAbs) * 100;
+          const winner = r.gap > 0 ? a : r.gap < 0 ? b : null;
           return (
-            <React.Fragment key={r.name}>
+            <div key={r.name} style={{ display: "flex", alignItems: "center", gap: 0, minHeight: 28 }}>
               {/* Left bar (A) */}
-              <div style={{ display: "flex", justifyContent: "flex-end", height: 18 }}>
-                <div style={{ width: `${Math.min(100, (r.gap > 0 ? aPct : 0))}%`, height: "100%",
-                  background: metaA.color, borderRadius: "3px 0 0 3px",
-                  opacity: r.gap > 0 ? 1 : 0.25,
-                  minWidth: aVal > 0 ? 4 : 0,
+              <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", paddingRight: 0 }}>
+                <div onClick={() => aVal > 0 && onDrill(a, r.name)} style={{
+                  height: 22, width: `${Math.min(100, aPct)}%`, minWidth: aVal > 0 ? 4 : 0,
+                  background: winner === a
+                    ? `linear-gradient(to right, ${metaA.color}, ${metaA.color}ee 55%, ${metaA.color}00)`
+                    : `linear-gradient(to right, ${metaA.color}30, ${metaA.color}00)`,
+                  borderRadius: "3px 0 0 3px",
                   display: "flex", alignItems: "center", justifyContent: "flex-start",
-                  paddingLeft: 6, color: "#fff", fontFamily: mono, fontSize: 10, fontWeight: 700,
+                  paddingLeft: 7, color: "#fff", fontFamily: mono, fontSize: 10, fontWeight: 700,
+                  flexShrink: 0, cursor: aVal > 0 ? "pointer" : "default",
                 }}>
-                  {aVal > 0 && aPct > 12 ? aVal : ""}
+                  {aVal > 0 && aPct > 10 ? aVal : ""}
                 </div>
               </div>
-              {/* Theme label */}
+
+              {/* Centre chip */}
               <div style={{
-                textAlign: "center" as const, fontFamily: sans, fontSize: 12, fontWeight: 500, color: dark,
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+                width: 180, flexShrink: 0,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                position: "relative" as const,
               }}>
-                <span style={{ color: gray, display: "flex" }}>{topicIcons[r.name]}</span>
-                {r.name}
-              </div>
-              {/* Right bar (B) */}
-              <div style={{ display: "flex", justifyContent: "flex-start", height: 18 }}>
-                <div style={{ width: `${Math.min(100, (r.gap < 0 ? bPct : 0))}%`, height: "100%",
-                  background: metaB.color, borderRadius: "0 3px 3px 0",
-                  opacity: r.gap < 0 ? 1 : 0.25,
-                  minWidth: bVal > 0 ? 4 : 0,
-                  display: "flex", alignItems: "center", justifyContent: "flex-end",
-                  paddingRight: 6, color: "#fff", fontFamily: mono, fontSize: 10, fontWeight: 700,
+                <div style={{
+                  position: "relative" as const, zIndex: 1,
+                  display: "inline-flex", alignItems: "center", gap: 5,
+                  padding: "4px 10px",
+                  borderRadius: 20,
+                  background: winner ? PARTY_META[winner].color + "12" : "#f5f3ee",
+                  border: `1px solid ${winner ? PARTY_META[winner].color + "44" : border}`,
+                  fontFamily: sans, fontSize: 11, fontWeight: 600, color: dark,
+                  whiteSpace: "nowrap" as const,
+                  letterSpacing: "0.01em",
                 }}>
-                  {bVal > 0 && bPct > 12 ? bVal : ""}
+                  <span style={{ color: winner ? PARTY_META[winner].color : gray, display: "flex", flexShrink: 0 }}>
+                    {topicIcons[r.name]}
+                  </span>
+                  {r.name}
                 </div>
               </div>
-            </React.Fragment>
+
+              {/* Right bar (B) */}
+              <div style={{ flex: 1, display: "flex", justifyContent: "flex-start", paddingLeft: 0 }}>
+                <div onClick={() => bVal > 0 && onDrill(b, r.name)} style={{
+                  height: 22, width: `${Math.min(100, bPct)}%`, minWidth: bVal > 0 ? 4 : 0,
+                  background: winner === b
+                    ? `linear-gradient(to left, ${metaB.color}, ${metaB.color}ee 55%, ${metaB.color}00)`
+                    : `linear-gradient(to left, ${metaB.color}30, ${metaB.color}00)`,
+                  borderRadius: "0 3px 3px 0",
+                  display: "flex", alignItems: "center", justifyContent: "flex-end",
+                  paddingRight: 7, color: "#fff", fontFamily: mono, fontSize: 10, fontWeight: 700,
+                  flexShrink: 0, cursor: bVal > 0 ? "pointer" : "default",
+                }}>
+                  {bVal > 0 && bPct > 10 ? bVal : ""}
+                </div>
+              </div>
+            </div>
           );
         })}
       </div>
 
       <p style={{ fontFamily: serif, fontSize: 12, color: gray, fontStyle: "italic", margin: 0 }}>
-        Bar length = promise count for each party. Faded bars show the losing side of each duel so you see both numbers at once.
+        Bar length = promise count. Faded bars show the trailing side. Chip colour tints toward the leader.
       </p>
-    </div>
-  );
-}
-
-// ── Treemap ─────────────────────────────────────────────────────────────────
-
-const PARTY_COLORS = { admk: admkColor, dmk: dmkColor, tvk: tvkColor };
-
-interface TreemapContentProps {
-  x?: number; y?: number; width?: number; height?: number;
-  name?: string; admk?: number; dmk?: number; tvk?: number;
-  depth?: number; index?: number;
-}
-
-function TreemapContent(props: TreemapContentProps) {
-  const { x = 0, y = 0, width = 0, height = 0, name = "", admk = 0, dmk = 0, tvk = 0 } = props;
-  const total = admk + dmk + tvk;
-  if (width < 10 || height < 10) return null;
-  const parties: Array<{ key: PartyKey; val: number }> = [
-    { key: "admk", val: admk },
-    { key: "dmk",  val: dmk  },
-    { key: "tvk",  val: tvk  },
-  ];
-  let cx = x;
-  return (
-    <g>
-      {parties.map(({ key, val }) => {
-        const w = total > 0 ? (val / total) * width : 0;
-        const rect = <rect key={key} x={cx} y={y} width={w} height={height} fill={PARTY_COLORS[key]} opacity={0.85} />;
-        cx += w;
-        return rect;
-      })}
-      <rect x={x} y={y} width={width} height={height} fill="none" stroke="#fff" strokeWidth={2} />
-      {height > 28 && width > 50 && (
-        <text x={x + 8} y={y + 16} fill="#fff" fontSize={11} fontFamily={sans} fontWeight={700} style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>
-          {name}
-        </text>
-      )}
-      {height > 44 && width > 50 && (
-        <text x={x + 8} y={y + 30} fill="rgba(255,255,255,0.85)" fontSize={10} fontFamily={mono}>
-          {total}
-        </text>
-      )}
-    </g>
-  );
-}
-
-function TreemapView({ rows }: { rows: ThemeRow[] }) {
-  const data = rows.map(r => ({ name: r.name, admk: r.admk, dmk: r.dmk, tvk: r.tvk, size: r.total }));
-  return (
-    <div>
-      <div style={{ height: 480 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <Treemap data={data} dataKey="size" aspectRatio={4 / 3} content={<TreemapContent />}>
-            <Tooltip content={({ active, payload }) => {
-              if (!active || !payload?.length) return null;
-              const d = payload[0].payload as { name: string; admk: number; dmk: number; tvk: number };
-              return (
-                <div style={{ background: "#fff", border: `1px solid ${border}`, borderRadius: 4, padding: "8px 12px", fontFamily: sans, fontSize: 12 }}>
-                  <div style={{ fontWeight: 700, color: dark, marginBottom: 4 }}>{d.name}</div>
-                  <div style={{ color: admkColor }}>ADMK: {d.admk}</div>
-                  <div style={{ color: dmkColor }}>DMK: {d.dmk}</div>
-                  <div style={{ color: tvkColor }}>TVK: {d.tvk}</div>
-                </div>
-              );
-            }} />
-          </Treemap>
-        </ResponsiveContainer>
-      </div>
-      <div style={{ display: "flex", gap: 20, marginTop: 12 }}>
-        {(["admk","dmk","tvk"] as const).map(k => (
-          <div key={k} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ width: 12, height: 12, borderRadius: 2, background: PARTY_META[k].color }} />
-            <span style={{ fontFamily: sans, fontSize: 12, color: gray }}>{PARTY_META[k].label} share</span>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
 
 // ── Main CompareGrid ────────────────────────────────────────────────────────
 
+
 const VIEW_MODES: { key: ViewMode; label: string; desc: string }[] = [
   { key: "verdicts",   label: "Verdicts",       desc: "One-line verdict per theme — who owns what" },
   { key: "priorities", label: "Party Priorities", desc: "What each party actually cares about most" },
   { key: "duels",      label: "Head-to-Head",   desc: "Pick two parties, see biggest gaps" },
-  { key: "treemap",    label: "Treemap",        desc: "Area = promise count, colour split by party" },
 ];
 
 export function CompareGrid() {
   const [viewMode, setViewMode] = useState<ViewMode>("verdicts");
   const rows = useMemo(buildThemeRows, []);
+
+  const [drill, setDrill] = useState<{ party: PartyKey; theme: string } | null>(null);
+
+  const drillPts = useMemo(() => {
+    if (!drill) return [];
+    return allPoints.filter(p => p.party === drill.party && p.primaryTheme.toLowerCase() === drill.theme.toLowerCase());
+  }, [drill]);
 
   return (
     <div style={{ paddingBottom: 48 }}>
@@ -530,8 +489,8 @@ export function CompareGrid() {
           Who promises what?
         </h2>
         <p style={{ fontFamily: serif, fontSize: 16, lineHeight: "30px", color: "#2e2e2e", marginTop: 4, marginBottom: 0 }}>
-          {(TOTALS.admk + TOTALS.dmk + TOTALS.tvk).toLocaleString()} promises across 12 policy themes —
-          sorted four ways to tell different stories about ADMK, DMK and TVK.
+          {(TOTALS.admk + TOTALS.dmk + TOTALS.tvk).toLocaleString()} promises across {THEME_COUNT} policy themes —
+          sorted {VIEW_MODES.length} ways to tell different stories about {PARTY_LABELS.join(", ")}.
         </p>
       </div>
 
@@ -552,10 +511,18 @@ export function CompareGrid() {
         </span>
       </div>
 
-      {viewMode === "verdicts"   && <VerdictsView rows={rows} />}
-      {viewMode === "priorities" && <PrioritiesView rows={rows} />}
-      {viewMode === "duels"      && <DuelsView rows={rows} />}
-      {viewMode === "treemap"    && <TreemapView rows={rows} />}
+      {viewMode === "verdicts"   && <VerdictsView rows={rows} onDrill={(p, t) => setDrill({ party: p, theme: t })} />}
+      {viewMode === "priorities" && <PrioritiesView rows={rows} onDrill={(p, t) => setDrill({ party: p, theme: t })} />}
+      {viewMode === "duels"      && <DuelsView rows={rows} onDrill={(p, t) => setDrill({ party: p, theme: t })} />}
+
+      {drill && drillPts.length > 0 && (
+        <PromiseModal
+          title={<>Promises for <strong>{drill.theme}</strong></>}
+          promises={drillPts}
+          partyLabel={PARTY_META[drill.party].label}
+          onClose={() => setDrill(null)}
+        />
+      )}
     </div>
   );
 }

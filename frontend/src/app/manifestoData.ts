@@ -1,9 +1,9 @@
 // All data is derived at runtime from the enriched JSON files.
 // Adding more points to the JSONs automatically flows through to the UI.
 
-import admkRaw from "../data/aiadmk.enriched.json";
-import dmkRaw  from "../data/dmk.enriched.json";
-import tvkRaw  from "../data/tvk_en.enriched.json";
+import admkRaw from "../../../data/pipeline_2/aiadmk.enriched.json";
+import dmkRaw from "../../../data/pipeline_2/dmk.enriched.json";
+import tvkRaw from "../../../data/pipeline_2/tvk_en.enriched.json";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -36,14 +36,14 @@ interface RawPoint {
       notes?: string | null;
     };
     feasibility?: {
-      fiscal?:         { score?: number | null };
-      legal?:          { score?: number | null };
+      fiscal?: { score?: number | null };
+      legal?: { score?: number | null };
       administrative?: { score?: number | null };
-      timeline?:       { score?: number | null };
-      political?:      { score?: number | null };
-      overall_score?:  number | null;
+      timeline?: { score?: number | null };
+      political?: { score?: number | null };
+      overall_score?: number | null;
       overall_comments?: string | null;
-      key_risks?:      string[];
+      key_risks?: string[];
     };
   };
 }
@@ -80,16 +80,16 @@ export interface ManifestoPoint {
 
 const PARTY_META = {
   admk: { label: "ADMK", color: "#547c5b" },
-  dmk:  { label: "DMK",  color: "#c94d48" },
-  tvk:  { label: "TVK",  color: "#E5A000" },
+  dmk: { label: "DMK", color: "#c94d48" },
+  tvk: { label: "TVK", color: "#E5A000" },
 } as const;
 
 function parseDoc(doc: RawDoc, party: "admk" | "dmk" | "tvk"): ManifestoPoint[] {
   const { label, color } = PARTY_META[party];
   return doc.points.map(pt => {
-    const ben  = pt.analysis?.beneficiary   ?? {};
-    const pe   = pt.analysis?.plan_existence ?? {};
-    const feas = pt.analysis?.feasibility   ?? {};
+    const ben = pt.analysis?.beneficiary ?? {};
+    const pe = pt.analysis?.plan_existence ?? {};
+    const feas = pt.analysis?.feasibility ?? {};
     return {
       party,
       partyLabel: label,
@@ -103,11 +103,11 @@ function parseDoc(doc: RawDoc, party: "admk" | "dmk" | "tvk"): ManifestoPoint[] 
       tags: ben.tags ?? [],
       feasibilityScore: feas.overall_score ?? null,
       feasibilityDims: {
-        fiscal:         feas.fiscal?.score         ?? null,
-        legal:          feas.legal?.score          ?? null,
+        fiscal: feas.fiscal?.score ?? null,
+        legal: feas.legal?.score ?? null,
         administrative: feas.administrative?.score ?? null,
-        timeline:       feas.timeline?.score       ?? null,
-        political:      feas.political?.score      ?? null,
+        timeline: feas.timeline?.score ?? null,
+        political: feas.political?.score ?? null,
       },
       alreadyExists: pe.already_exists === true,
       relation: pe.relation_to_existing ?? "new",
@@ -121,19 +121,22 @@ function parseDoc(doc: RawDoc, party: "admk" | "dmk" | "tvk"): ManifestoPoint[] 
 }
 
 export const PARTY_LABELS = Object.values(PARTY_META).map(m => m.label);
+export const PARTY_COLORS_BY_LABEL: Record<string, string> = Object.fromEntries(
+  Object.values(PARTY_META).map(m => [m.label, m.color])
+);
 
 export const allPoints: ManifestoPoint[] = [
   ...parseDoc(admkRaw as unknown as RawDoc, "admk"),
-  ...parseDoc(dmkRaw  as unknown as RawDoc, "dmk"),
-  ...parseDoc(tvkRaw  as unknown as RawDoc, "tvk"),
+  ...parseDoc(dmkRaw as unknown as RawDoc, "dmk"),
+  ...parseDoc(tvkRaw as unknown as RawDoc, "tvk"),
 ];
 
 // The total_points field reflects the full manifesto count even if fewer
 // points are currently enriched in the JSON — use it for headline numbers.
 export const TOTALS = {
   admk: (admkRaw as unknown as RawDoc).total_points,
-  dmk:  (dmkRaw  as unknown as RawDoc).total_points,
-  tvk:  (tvkRaw  as unknown as RawDoc).total_points,
+  dmk: (dmkRaw as unknown as RawDoc).total_points,
+  tvk: (tvkRaw as unknown as RawDoc).total_points,
 };
 export const GRAND_TOTAL = TOTALS.admk + TOTALS.dmk + TOTALS.tvk;
 
@@ -148,29 +151,29 @@ function scale(sampleCount: number, sampleSize: number, fullSize: number): numbe
 
 export const sampleSizes = {
   admk: allPoints.filter(p => p.party === "admk").length,
-  dmk:  allPoints.filter(p => p.party === "dmk").length,
-  tvk:  allPoints.filter(p => p.party === "tvk").length,
+  dmk: allPoints.filter(p => p.party === "dmk").length,
+  tvk: allPoints.filter(p => p.party === "tvk").length,
 };
 
 // ── Sector / theme breakdown ──────────────────────────────────────────────
 
 // Human-readable label for each LLM-assigned primary_theme
 const THEME_LABELS: Record<string, string> = {
-  governance:     "Governance",
+  governance: "Governance",
   social_justice: "Social Justice",
-  welfare:        "Welfare & Cash Transfer",
-  education:      "Education",
-  employment:     "Employment / Jobs",
-  jobs:           "Employment / Jobs",
+  welfare: "Welfare & Cash Transfer",
+  education: "Education",
+  employment: "Employment / Jobs",
+  jobs: "Employment / Jobs",
   "arts and culture": "Arts & Culture",
   infrastructure: "Infrastructure",
-  industry:       "Industry & Investment",
-  investment:     "Industry & Investment",
-  agriculture:    "Agriculture",
-  women:          "Women & Gender",
-  youth:          "Youth",
-  tourism:        "Tourism",
-  other:          "Other",
+  industry: "Industry & Investment",
+  investment: "Industry & Investment",
+  agriculture: "Agriculture",
+  women: "Women & Gender",
+  youth: "Youth",
+  tourism: "Tourism",
+  other: "Other",
 };
 
 function themeLabel(raw: string): string {
@@ -190,8 +193,8 @@ function computeSectorData(): Record<string, { admk: number; dmk: number; tvk: n
   for (const [label, counts] of Object.entries(raw)) {
     scaled[label] = {
       admk: scale(counts.admk, sampleSizes.admk, TOTALS.admk),
-      dmk:  scale(counts.dmk,  sampleSizes.dmk,  TOTALS.dmk),
-      tvk:  scale(counts.tvk,  sampleSizes.tvk,  TOTALS.tvk),
+      dmk: scale(counts.dmk, sampleSizes.dmk, TOTALS.dmk),
+      tvk: scale(counts.tvk, sampleSizes.tvk, TOTALS.tvk),
     };
   }
   // Sort by total descending
@@ -203,6 +206,7 @@ function computeSectorData(): Record<string, { admk: number; dmk: number; tvk: n
 }
 
 export const sectorData = computeSectorData();
+export const THEME_COUNT = Object.keys(sectorData).length;
 
 // ── Specific theme counts for donut charts ────────────────────────────────
 
@@ -213,14 +217,17 @@ function themeCount(themeRaw: string[]): { admk: number; dmk: number; tvk: numbe
   }
   return {
     admk: scale(result.admk, sampleSizes.admk, TOTALS.admk),
-    dmk:  scale(result.dmk,  sampleSizes.dmk,  TOTALS.dmk),
-    tvk:  scale(result.tvk,  sampleSizes.tvk,  TOTALS.tvk),
+    dmk: scale(result.dmk, sampleSizes.dmk, TOTALS.dmk),
+    tvk: scale(result.tvk, sampleSizes.tvk, TOTALS.tvk),
   };
 }
 
-export const welfareData  = themeCount(["welfare"]);
-export const eduData      = themeCount(["education"]);
-export const agriData     = themeCount(["agriculture"]);
+export const welfareData = themeCount(["welfare"]);
+export const eduData = themeCount(["education"]);
+export const agriData = themeCount(["agriculture"]);
+// Capital expenditure = long-term capacity-building themes (infrastructure, education,
+// industry/investment, agriculture). Welfare is excluded — it's recurring current-spending.
+export const capexData = themeCount(["infrastructure", "education", "industry", "investment", "agriculture"]);
 
 // ── Feasibility scores (average across enriched sample) ───────────────────
 
@@ -231,27 +238,27 @@ function avgScores(party: "admk" | "dmk" | "tvk") {
     return vals.length ? +(vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(2) : 0;
   };
   return {
-    fiscal:         avg(pts.map(p => p.feasibilityDims.fiscal)),
-    legal:          avg(pts.map(p => p.feasibilityDims.legal)),
+    fiscal: avg(pts.map(p => p.feasibilityDims.fiscal)),
+    legal: avg(pts.map(p => p.feasibilityDims.legal)),
     administrative: avg(pts.map(p => p.feasibilityDims.administrative)),
-    timeline:       avg(pts.map(p => p.feasibilityDims.timeline)),
-    political:      avg(pts.map(p => p.feasibilityDims.political)),
-    overall:        avg(pts.map(p => p.feasibilityScore)),
+    timeline: avg(pts.map(p => p.feasibilityDims.timeline)),
+    political: avg(pts.map(p => p.feasibilityDims.political)),
+    overall: avg(pts.map(p => p.feasibilityScore)),
   };
 }
 
 export const feasibility = {
   admk: avgScores("admk"),
-  dmk:  avgScores("dmk"),
-  tvk:  avgScores("tvk"),
+  dmk: avgScores("dmk"),
+  tvk: avgScores("tvk"),
 };
 
 export const feasibilityRadarData = [
-  { dim: "Fiscal",    ADMK: feasibility.admk.fiscal,         DMK: feasibility.dmk.fiscal,         TVK: feasibility.tvk.fiscal         },
-  { dim: "Legal",     ADMK: feasibility.admk.legal,          DMK: feasibility.dmk.legal,           TVK: feasibility.tvk.legal          },
-  { dim: "Admin",     ADMK: feasibility.admk.administrative, DMK: feasibility.dmk.administrative,  TVK: feasibility.tvk.administrative },
-  { dim: "Timeline",  ADMK: feasibility.admk.timeline,       DMK: feasibility.dmk.timeline,        TVK: feasibility.tvk.timeline       },
-  { dim: "Political", ADMK: feasibility.admk.political,      DMK: feasibility.dmk.political,       TVK: feasibility.tvk.political      },
+  { dim: "Fiscal", ADMK: feasibility.admk.fiscal, DMK: feasibility.dmk.fiscal, TVK: feasibility.tvk.fiscal },
+  { dim: "Legal", ADMK: feasibility.admk.legal, DMK: feasibility.dmk.legal, TVK: feasibility.tvk.legal },
+  { dim: "Admin", ADMK: feasibility.admk.administrative, DMK: feasibility.dmk.administrative, TVK: feasibility.tvk.administrative },
+  { dim: "Timeline", ADMK: feasibility.admk.timeline, DMK: feasibility.dmk.timeline, TVK: feasibility.tvk.timeline },
+  { dim: "Political", ADMK: feasibility.admk.political, DMK: feasibility.dmk.political, TVK: feasibility.tvk.political },
 ];
 
 // ── Plan novelty (relation_to_existing) ───────────────────────────────────
@@ -272,66 +279,18 @@ function computeNovelty() {
     .map(([label, counts]) => ({
       label: label.charAt(0).toUpperCase() + label.slice(1),
       admk: scale(counts.admk, sampleSizes.admk, TOTALS.admk),
-      dmk:  scale(counts.dmk,  sampleSizes.dmk,  TOTALS.dmk),
-      tvk:  scale(counts.tvk,  sampleSizes.tvk,  TOTALS.tvk),
+      dmk: scale(counts.dmk, sampleSizes.dmk, TOTALS.dmk),
+      tvk: scale(counts.tvk, sampleSizes.tvk, TOTALS.tvk),
     }));
 }
 
 export const noveltyData = computeNovelty();
 
-// ── Demographics ──────────────────────────────────────────────────────────
-
-type DemoMatcher = (pt: ManifestoPoint) => boolean;
-
-const DEMO_GROUPS: { group: string; pop: string; share: string; match: DemoMatcher }[] = [
-  {
-    group: "Women", pop: "3.83 cr", share: "50.1%",
-    match: pt => pt.gender.includes("women"),
-  },
-  {
-    group: "Youth (15–29)", pop: "2.02 cr", share: "26.4%",
-    match: pt => pt.ageGroup.some(a => a === "youth") || pt.primaryTheme === "youth",
-  },
-  {
-    group: "Farmers / Agri", pop: "2.09 cr", share: "27.3%",
-    match: pt =>
-      pt.sector.some(s => /agri/i.test(s)) ||
-      pt.primaryTheme === "agriculture",
-  },
-  {
-    group: "SC / ST", pop: "1.62 cr", share: "21.2%",
-    match: pt => pt.communityCategory.some(c => c === "SC" || c === "ST"),
-  },
-  {
-    group: "Elderly (60+)", pop: "0.98 cr", share: "12.9%",
-    match: pt => pt.ageGroup.some(a => a === "elderly"),
-  },
-  {
-    group: "OBC / MBC", pop: "est. 50%", share: "~50%",
-    match: pt => pt.communityCategory.some(c => c === "OBC" || c === "MBC"),
-  },
-  {
-    group: "Rural", pop: "est. 52%", share: "~52%",
-    match: pt => pt.urbanRural === "rural",
-  },
-];
-
-export const demographicsData = DEMO_GROUPS.map(({ group, pop, share, match }) => {
-  const raw = { admk: 0, dmk: 0, tvk: 0 };
-  for (const pt of allPoints) if (match(pt)) raw[pt.party]++;
-  return {
-    group, pop, share,
-    admk: scale(raw.admk, sampleSizes.admk, TOTALS.admk),
-    dmk:  scale(raw.dmk,  sampleSizes.dmk,  TOTALS.dmk),
-    tvk:  scale(raw.tvk,  sampleSizes.tvk,  TOTALS.tvk),
-  };
-});
-
 // ── Urban / Rural scope ───────────────────────────────────────────────────
 
 function computeUrbanRural() {
   const raw: Record<string, { admk: number; dmk: number; tvk: number }> = {
-    both:  { admk: 0, dmk: 0, tvk: 0 },
+    both: { admk: 0, dmk: 0, tvk: 0 },
     urban: { admk: 0, dmk: 0, tvk: 0 },
     rural: { admk: 0, dmk: 0, tvk: 0 },
   };
@@ -340,7 +299,7 @@ function computeUrbanRural() {
     raw[key][pt.party]++;
   }
   return [
-    { label: "Both",  admk: scale(raw.both.admk,  sampleSizes.admk, TOTALS.admk), dmk: scale(raw.both.dmk,  sampleSizes.dmk, TOTALS.dmk), tvk: scale(raw.both.tvk,  sampleSizes.tvk, TOTALS.tvk) },
+    { label: "Both", admk: scale(raw.both.admk, sampleSizes.admk, TOTALS.admk), dmk: scale(raw.both.dmk, sampleSizes.dmk, TOTALS.dmk), tvk: scale(raw.both.tvk, sampleSizes.tvk, TOTALS.tvk) },
     { label: "Urban", admk: scale(raw.urban.admk, sampleSizes.admk, TOTALS.admk), dmk: scale(raw.urban.dmk, sampleSizes.dmk, TOTALS.dmk), tvk: scale(raw.urban.tvk, sampleSizes.tvk, TOTALS.tvk) },
     { label: "Rural", admk: scale(raw.rural.admk, sampleSizes.admk, TOTALS.admk), dmk: scale(raw.rural.dmk, sampleSizes.dmk, TOTALS.dmk), tvk: scale(raw.rural.tvk, sampleSizes.tvk, TOTALS.tvk) },
   ];
@@ -369,31 +328,31 @@ export interface FactCheck {
   score: number | null;
   theme: string;
   themeLabel: string;
-  keyRisks: string[];
+  keyHurdles: string[];
   evidence: FactCheckEvidence[];
 }
 
 function scoreToVerdict(score: number | null | undefined): { verdict: string; verdictColor: string } {
   if (score === null || score === undefined) return { verdict: "Aspirational", verdictColor: "rgb(138,117,32)" };
-  if (score >= 4) return { verdict: "Accurate",    verdictColor: "#1C804C" };
-  if (score === 3) return { verdict: "Disputed",   verdictColor: "rgb(176,90,42)" };
-  return             { verdict: "Unlikely",    verdictColor: "#d43d51" };
+  if (score >= 4) return { verdict: "Feasible", verdictColor: "#1C804C" };
+  if (score === 3) return { verdict: "Disputed", verdictColor: "rgb(176,90,42)" };
+  return { verdict: "Unlikely", verdictColor: "#d43d51" };
 }
 
 function buildFactChecks(): FactCheck[] {
   const result: FactCheck[] = [];
   const parties: Array<{ key: "admk" | "dmk" | "tvk"; doc: RawDoc }> = [
     { key: "admk", doc: admkRaw as unknown as RawDoc },
-    { key: "dmk",  doc: dmkRaw  as unknown as RawDoc },
-    { key: "tvk",  doc: tvkRaw  as unknown as RawDoc },
+    { key: "dmk", doc: dmkRaw as unknown as RawDoc },
+    { key: "tvk", doc: tvkRaw as unknown as RawDoc },
   ];
 
   for (const { key, doc } of parties) {
     const { label, color } = PARTY_META[key];
     for (const pt of doc.points) {
-      const pe   = pt.analysis?.plan_existence;
+      const pe = pt.analysis?.plan_existence;
       const feas = pt.analysis?.feasibility;
-      const notes   = pe?.notes;
+      const notes = pe?.notes;
       const comments = feas?.overall_comments;
       const evidence = pe?.evidence ?? [];
       const score = feas?.overall_score;
@@ -402,10 +361,13 @@ function buildFactChecks(): FactCheck[] {
       const analysisText = notes || comments;
       if (!analysisText) continue;
 
-      // Use title as claim; fall back to first 120 chars of text
-      const claim = pt.title
-        ? `"${pt.title}"`
-        : `"${pt.text.slice(0, 120)}…"`;
+      // TVK titles are prefixed with their point number (e.g. "12 Free bus travel…") — strip it.
+      const cleanedTitle = key === "tvk" && pt.title
+        ? pt.title.replace(/^\d+\s+/, "")
+        : pt.title;
+      const claim = cleanedTitle
+        ? `"${cleanedTitle}"`
+        : `"${pt.text}"`;
 
       const { verdict, verdictColor } = scoreToVerdict(score);
       const themeRaw = pt.analysis?.beneficiary?.primary_theme ?? "other";
@@ -423,10 +385,10 @@ function buildFactChecks(): FactCheck[] {
         score: score ?? null,
         theme: themeRaw,
         themeLabel: themeLabel(themeRaw),
-        keyRisks: Array.isArray(feas?.key_risks) ? feas!.key_risks! : [],
+        keyHurdles: Array.isArray(feas?.key_risks) ? feas!.key_risks! : [],
         evidence: evidence.map(e => ({
-          title:   e.title   ?? "",
-          url:     e.url     ?? "",
+          title: e.title ?? "",
+          url: e.url ?? "",
           snippet: e.snippet ?? "",
         })).filter(e => e.title || e.url),
       });

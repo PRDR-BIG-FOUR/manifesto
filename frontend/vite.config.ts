@@ -30,6 +30,14 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+
+  server: {
+    fs: {
+      // Allow importing the enriched JSON files from ../data/pipeline_2
+      allow: [path.resolve(__dirname, '..')],
+    },
+  },
+
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ['**/*.svg', '**/*.csv'],
 })

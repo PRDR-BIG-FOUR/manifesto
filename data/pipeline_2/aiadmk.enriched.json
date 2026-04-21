@@ -6156,12 +6156,7 @@
         "beneficiary": {
           "geography": {
             "scope": "statewide",
-            "regions": [
-              {
-                "type": "city",
-                "name": "Coimbatore"
-              }
-            ]
+            "regions": []
           },
           "gender": [
             "all"
@@ -21707,12 +21702,7 @@
         "beneficiary": {
           "geography": {
             "scope": "statewide",
-            "regions": [
-              {
-                "type": "city",
-                "name": "Chennai"
-              }
-            ]
+            "regions": []
           },
           "gender": [
             "all"
@@ -41657,28 +41647,7 @@
         "beneficiary": {
           "geography": {
             "scope": "statewide",
-            "regions": [
-              {
-                "type": "city",
-                "name": "Tiruppur"
-              },
-              {
-                "type": "city",
-                "name": "Coimbatore"
-              },
-              {
-                "type": "city",
-                "name": "Erode"
-              },
-              {
-                "type": "city",
-                "name": "Karur"
-              },
-              {
-                "type": "city",
-                "name": "Salem"
-              }
-            ]
+            "regions": []
           },
           "gender": [
             "all"
