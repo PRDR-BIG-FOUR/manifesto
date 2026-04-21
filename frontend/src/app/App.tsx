@@ -33,6 +33,15 @@ const tvkColor  = "#E5A000";
 
 const tabs = ["Dashboard", "Compare", "Demography", "Fact Check"];
 
+// Editorial descriptions for each feasibility dimension in feasibilityRadarData.
+const FEASIBILITY_DESCRIPTIONS: Record<string, string> = {
+  Fiscal:    "Can the state afford it?",
+  Legal:     "Does the state have jurisdiction?",
+  Admin:     "Does delivery capacity exist?",
+  Timeline:  "Achievable within a 5-year term?",
+  Political: "Does it have broad political support?",
+};
+
 
 // ── Small shared components ───────────────────────────────────────────────
 
@@ -157,7 +166,7 @@ function SearchTab({ query }: { query: string }) {
           {results.length} result{results.length !== 1 ? "s" : ""} for "{query}"
         </h2>
         <p style={{ fontFamily: serif, fontSize: 16, lineHeight: "30px", color: "#2e2e2e", marginTop: 4 }}>
-          Searching across {allPoints.length} indexed promises from 3 parties.
+          Searching across {allPoints.length} indexed promises from {PARTY_LABELS.length} parties.
         </p>
       </div>
 
@@ -237,7 +246,7 @@ function DashboardTab() {
             competition
           </h1>
           <p style={{ fontFamily: serif, fontSize: 20, lineHeight: "30px", color: "#2e2e2e", marginTop: 19, maxWidth: 586 }}>
-            A structured reading of the ADMK, DMK and TVK manifestos for the 2026 Legislative Assembly election.
+            A structured reading of the {PARTY_LABELS.slice(0, -1).join(", ")} and {PARTY_LABELS.slice(-1)[0]} manifestos for the 2026 Legislative Assembly election.
             Every promise parsed, classified by theme, beneficiary, sector and feasibility.
           </p>
           <div style={{ display: "flex", gap: 4, marginTop: 20 }}>
@@ -263,34 +272,6 @@ function DashboardTab() {
         </div>
       </section>
 
-      {/* Stats Bar */}
-      <section style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", borderBottomWidth: 1, borderBottomStyle: "solid", borderBottomColor: border }}>
-        {(() => {
-          const maxTotal = Math.max(TOTALS.admk, TOTALS.dmk, TOTALS.tvk);
-          const minTotal = Math.min(TOTALS.admk, TOTALS.dmk, TOTALS.tvk);
-          const noteFor = (v: number) => v === maxTotal ? "largest manifesto" : v === minTotal ? "smallest manifesto" : "across all sections";
-          return [
-            { label: "Total promises",  value: GRAND_TOTAL.toLocaleString(), note: "across 3 parties" },
-            { label: "ADMK promises",   value: TOTALS.admk.toLocaleString(), note: noteFor(TOTALS.admk) },
-            { label: "DMK promises",    value: TOTALS.dmk.toLocaleString(),  note: noteFor(TOTALS.dmk) },
-            { label: "TVK promises",    value: TOTALS.tvk.toLocaleString(),  note: noteFor(TOTALS.tvk) },
-            { label: "Points analysed", value: allPoints.length.toString(),  note: "LLM-enriched sample" },
-          ];
-        })().map((s, i) => (
-          <div key={s.label} style={{
-            padding: 22, borderLeftWidth: i > 0 ? 1 : 0, borderLeftStyle: "solid" as const,
-            borderLeftColor: border, marginTop: 32, borderTopWidth: 1, borderTopStyle: "solid" as const, borderTopColor: border,
-          }}>
-            <div style={{ fontFamily: sans, fontSize: 12, fontWeight: 600, letterSpacing: "1.2px", textTransform: "uppercase" as const, color: gray, marginBottom: 10 }}>
-              {s.label}
-            </div>
-            <div style={{ fontFamily: serif, fontSize: 38, lineHeight: 1, color: dark, letterSpacing: "-0.38px" }}>
-              {s.value}
-            </div>
-            <div style={{ fontFamily: sans, fontSize: 12, color: gray, marginTop: 8 }}>{s.note}</div>
-          </div>
-        ))}
-      </section>
 
       {/* Feasibility Radar */}
       <section style={{ padding: "48px 0 32px" }}>
@@ -298,7 +279,7 @@ function DashboardTab() {
           How feasible are the promises?
         </h2>
         <p style={{ fontFamily: serif, fontSize: 15, lineHeight: "28px", color: "#2e2e2e", margin: "0 0 28px", maxWidth: 600 }}>
-          Each promise was scored 1–5 across five dimensions using LLM analysis grounded in real policy data.
+          Each promise was scored 1–5 across {feasibilityRadarData.length} dimensions using LLM analysis grounded in real policy data.
           Higher score = more feasible.
         </p>
         <div style={{ display: "flex", gap: 40, alignItems: "flex-start" }}>
@@ -316,16 +297,10 @@ function DashboardTab() {
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 32px" }}>
-              {[
-                { dim: "Fiscal",    desc: "Can the state afford it?" },
-                { dim: "Legal",     desc: "Does the state have jurisdiction?" },
-                { dim: "Admin",     desc: "Does delivery capacity exist?" },
-                { dim: "Timeline",  desc: "Achievable within a 5-year term?" },
-                { dim: "Political", desc: "Does it have broad political support?" },
-              ].map(({ dim, desc }) => (
+              {feasibilityRadarData.map(({ dim }) => (
                 <div key={dim} style={{ padding: "16px 0", borderBottom: `1px solid ${border}` }}>
                   <div style={{ fontFamily: sans, fontSize: 12, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase" as const, color: dark, marginBottom: 4 }}>{dim}</div>
-                  <div style={{ fontFamily: serif, fontSize: 13, color: gray, lineHeight: 1.5 }}>{desc}</div>
+                  <div style={{ fontFamily: serif, fontSize: 13, color: gray, lineHeight: 1.5 }}>{FEASIBILITY_DESCRIPTIONS[dim] ?? ""}</div>
                 </div>
               ))}
             </div>
@@ -378,8 +353,8 @@ function DemographyTab() {
         <DemographyExplorer />
 
         <p style={{ fontFamily: serif, fontSize: 13, color: gray, fontStyle: "italic", marginTop: 4 }}>
-          Counts scaled from {allPoints.length} enriched sample points to full manifesto totals.
-          Drill-down shows real promise titles from the current sample.
+          Counts reflect all {allPoints.length} analysed promises across the three manifestos.
+          Click any bar to drill into the underlying promises.
         </p>
 
         {/* Urban vs Rural */}

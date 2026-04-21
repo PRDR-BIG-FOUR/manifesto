@@ -23,20 +23,18 @@ const PARTIES: { key: PartyKey; label: string; color: string }[] = [
 interface Group {
   key: string;
   label: string;
-  pop: string;
-  share: string;
   match: (p: ManifestoPoint) => boolean;
 }
 
 const GROUPS: Group[] = [
-  { key: "women",   label: "Women",          pop: "3.83 cr", share: "50.1%", match: p => p.gender.includes("women") },
-  { key: "youth",   label: "Youth",          pop: "2.02 cr", share: "26.4%", match: p => p.ageGroup.includes("youth") || p.primaryTheme === "youth" },
-  { key: "farmers", label: "Farmers / Agri", pop: "2.09 cr", share: "27.3%", match: p => p.sector.some(s => /agri/i.test(s)) || p.primaryTheme === "agriculture" },
-  { key: "sc_st",   label: "SC / ST",        pop: "1.62 cr", share: "21.2%", match: p => p.communityCategory.some(c => c === "SC" || c === "ST") },
-  { key: "elderly", label: "Elderly (60+)",  pop: "0.98 cr", share: "12.9%", match: p => p.ageGroup.includes("elderly") },
-  { key: "obc",     label: "OBC / MBC",      pop: "~50%",    share: "~50%",  match: p => p.communityCategory.some(c => c === "OBC" || c === "MBC") },
-  { key: "rural",   label: "Rural",          pop: "~52%",    share: "~52%",  match: p => p.urbanRural === "rural" },
-  { key: "urban",   label: "Urban",          pop: "~48%",    share: "~48%",  match: p => p.urbanRural === "urban" },
+  { key: "women",   label: "Women",          match: p => p.gender.includes("women") },
+  { key: "youth",   label: "Youth",          match: p => p.ageGroup.includes("youth") || p.primaryTheme === "youth" },
+  { key: "farmers", label: "Farmers / Agri", match: p => p.sector.some(s => /agri/i.test(s)) || p.primaryTheme === "agriculture" },
+  { key: "sc_st",   label: "SC / ST",        match: p => p.communityCategory.some(c => c === "SC" || c === "ST") },
+  { key: "elderly", label: "Elderly (60+)",  match: p => p.ageGroup.includes("elderly") },
+  { key: "obc",     label: "OBC / MBC",      match: p => p.communityCategory.some(c => c === "OBC" || c === "MBC") },
+  { key: "rural",   label: "Rural",          match: p => p.urbanRural === "rural" },
+  { key: "urban",   label: "Urban",          match: p => p.urbanRural === "urban" },
 ];
 
 function scaleCount(sample: number, party: PartyKey): number {
@@ -159,7 +157,7 @@ export function DemographyExplorer() {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <span style={{ fontFamily: mono, fontSize: 11, color: gray }}>
-                {drillPts.length} of {sampleSizes[drill.party]} enriched · scaled ≈ {drillStat.counts[drill.party].scaled}
+                {drillPts.length} of {TOTALS[drill.party]} promises
               </span>
               <button onClick={() => setDrill(null)} style={{
                 background: "none", border: "none", cursor: "pointer",
@@ -169,7 +167,7 @@ export function DemographyExplorer() {
           </div>
           {drillPts.length === 0 ? (
             <div style={{ fontFamily: serif, fontSize: 14, color: gray, fontStyle: "italic" }}>
-              No enriched sample promises yet for this combination.
+              No promises found for this combination.
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column" }}>
@@ -206,7 +204,7 @@ export function DemographyExplorer() {
 
       {/* Footnote */}
       <p style={{ fontFamily: serif, fontSize: 13, color: gray, fontStyle: "italic", margin: 0 }}>
-        Reach counts are scaled from {allPoints.length} enriched sample points to full manifesto totals.
+        Reach counts are derived from {allPoints.length} analysed promises across the three manifestos.
         Leader badge marks the party with the most promises ({mode === "reach" ? "absolute" : "as % of own manifesto"}) for each group.
       </p>
     </div>
@@ -257,7 +255,7 @@ function GroupCard({
             {stat.group.label}
           </div>
           <div style={{ fontFamily: mono, fontSize: 11, color: gray, marginTop: 2 }}>
-            {stat.group.pop} · {stat.group.share} of TN
+            {stat.totalScaled} promises total
           </div>
         </div>
         {leader && stat.leaderMargin > 0 && mode === "reach" && (
@@ -350,7 +348,7 @@ function buildVerdict(stat: GroupStats, mode: "reach" | "share"): string {
   const mid = ordered[1];
   const bot = ordered[2];
 
-  if (top.scaled === 0) return `No party has made explicit ${label.toLowerCase()} promises in the enriched sample yet.`;
+  if (top.scaled === 0) return `No party has made explicit ${label.toLowerCase()} promises.`;
 
   if (mode === "reach") {
     if (top.scaled > mid.scaled * 2 && mid.scaled > 0) {

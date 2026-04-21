@@ -1,9 +1,9 @@
 // All data is derived at runtime from the enriched JSON files.
 // Adding more points to the JSONs automatically flows through to the UI.
 
-import admkRaw from "../data/aiadmk.enriched.json";
-import dmkRaw  from "../data/dmk.enriched.json";
-import tvkRaw  from "../data/tvk_en.enriched.json";
+import admkRaw from "../../../data/pipeline_2/aiadmk.enriched.json";
+import dmkRaw  from "../../../data/pipeline_2/dmk.enriched.json";
+import tvkRaw  from "../../../data/pipeline_2/tvk_en.enriched.json";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -121,6 +121,9 @@ function parseDoc(doc: RawDoc, party: "admk" | "dmk" | "tvk"): ManifestoPoint[] 
 }
 
 export const PARTY_LABELS = Object.values(PARTY_META).map(m => m.label);
+export const PARTY_COLORS_BY_LABEL: Record<string, string> = Object.fromEntries(
+  Object.values(PARTY_META).map(m => [m.label, m.color])
+);
 
 export const allPoints: ManifestoPoint[] = [
   ...parseDoc(admkRaw as unknown as RawDoc, "admk"),
@@ -203,6 +206,7 @@ function computeSectorData(): Record<string, { admk: number; dmk: number; tvk: n
 }
 
 export const sectorData = computeSectorData();
+export const THEME_COUNT = Object.keys(sectorData).length;
 
 // ── Specific theme counts for donut charts ────────────────────────────────
 
@@ -278,54 +282,6 @@ function computeNovelty() {
 }
 
 export const noveltyData = computeNovelty();
-
-// ── Demographics ──────────────────────────────────────────────────────────
-
-type DemoMatcher = (pt: ManifestoPoint) => boolean;
-
-const DEMO_GROUPS: { group: string; pop: string; share: string; match: DemoMatcher }[] = [
-  {
-    group: "Women", pop: "3.83 cr", share: "50.1%",
-    match: pt => pt.gender.includes("women"),
-  },
-  {
-    group: "Youth (15–29)", pop: "2.02 cr", share: "26.4%",
-    match: pt => pt.ageGroup.some(a => a === "youth") || pt.primaryTheme === "youth",
-  },
-  {
-    group: "Farmers / Agri", pop: "2.09 cr", share: "27.3%",
-    match: pt =>
-      pt.sector.some(s => /agri/i.test(s)) ||
-      pt.primaryTheme === "agriculture",
-  },
-  {
-    group: "SC / ST", pop: "1.62 cr", share: "21.2%",
-    match: pt => pt.communityCategory.some(c => c === "SC" || c === "ST"),
-  },
-  {
-    group: "Elderly (60+)", pop: "0.98 cr", share: "12.9%",
-    match: pt => pt.ageGroup.some(a => a === "elderly"),
-  },
-  {
-    group: "OBC / MBC", pop: "est. 50%", share: "~50%",
-    match: pt => pt.communityCategory.some(c => c === "OBC" || c === "MBC"),
-  },
-  {
-    group: "Rural", pop: "est. 52%", share: "~52%",
-    match: pt => pt.urbanRural === "rural",
-  },
-];
-
-export const demographicsData = DEMO_GROUPS.map(({ group, pop, share, match }) => {
-  const raw = { admk: 0, dmk: 0, tvk: 0 };
-  for (const pt of allPoints) if (match(pt)) raw[pt.party]++;
-  return {
-    group, pop, share,
-    admk: scale(raw.admk, sampleSizes.admk, TOTALS.admk),
-    dmk:  scale(raw.dmk,  sampleSizes.dmk,  TOTALS.dmk),
-    tvk:  scale(raw.tvk,  sampleSizes.tvk,  TOTALS.tvk),
-  };
-});
 
 // ── Urban / Rural scope ───────────────────────────────────────────────────
 

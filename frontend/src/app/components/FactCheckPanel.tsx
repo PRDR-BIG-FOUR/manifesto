@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { factChecks, PARTY_LABELS, type FactCheck, type FactCheckEvidence } from "../manifestoData";
+import { factChecks, PARTY_LABELS, PARTY_COLORS_BY_LABEL, type FactCheck, type FactCheckEvidence } from "../manifestoData";
 
 const sans  = '"Inter Tight", sans-serif';
 const serif = '"Source Serif 4", serif';
@@ -8,11 +8,7 @@ const dark  = "#121212";
 const gray  = "#6b6b6b";
 const border = "#d9d7d2";
 const brown = "#a16749";
-const admkColor = "#547c5b";
-const dmkColor  = "#c94d48";
-const tvkColor  = "#E5A000";
-
-const PARTY_COLOR: Record<string, string> = { ADMK: admkColor, DMK: dmkColor, TVK: tvkColor };
+const PARTY_COLOR = PARTY_COLORS_BY_LABEL;
 
 type Verdict = "Accurate" | "Aspirational" | "Disputed" | "Unlikely";
 const VERDICTS: Verdict[] = ["Accurate", "Aspirational", "Disputed", "Unlikely"];
@@ -242,7 +238,8 @@ export function FactCheckPanel() {
 function PartySummaryStrip() {
   const byParty = useMemo(() => {
     const init = () => ({ Accurate: 0, Aspirational: 0, Disputed: 0, Unlikely: 0, total: 0 });
-    const map: Record<string, ReturnType<typeof init>> = { ADMK: init(), DMK: init(), TVK: init() };
+    const map: Record<string, ReturnType<typeof init>> = {};
+    for (const label of PARTY_LABELS) map[label] = init();
     for (const fc of factChecks) {
       if (!map[fc.party]) continue;
       map[fc.party][fc.verdict as Verdict]++;
@@ -253,7 +250,7 @@ function PartySummaryStrip() {
 
   return (
     <div style={{
-      display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12,
+      display: "grid", gridTemplateColumns: `repeat(${PARTY_LABELS.length}, 1fr)`, gap: 12,
       marginTop: 20,
     }}>
       {PARTY_LABELS.map(label => {

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Wheat, GraduationCap, Briefcase, Landmark, Factory, HardHat, HandCoins, Users, Palette, Scale, TrendingUp, MoreHorizontal } from "lucide-react";
-import { sectorData, TOTALS } from "../manifestoData";
+import { sectorData, TOTALS, THEME_COUNT, PARTY_LABELS } from "../manifestoData";
 import {
   ResponsiveContainer, Tooltip,
   Treemap,
@@ -372,61 +372,89 @@ function DuelsView({ rows }: { rows: ThemeRow[] }) {
       </div>
 
       {/* Diverging bars: left = A advantage, right = B advantage */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 200px 1fr", columnGap: 12, rowGap: 4, alignItems: "center" }}>
-        <div style={{ textAlign: "right" as const, fontFamily: sans, fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: metaA.color }}>
-          {metaA.label} advantage →
+      {/* Column header row */}
+      <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 2 }}>
+        <div style={{ flex: 1, textAlign: "right" as const, fontFamily: sans, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: metaA.color, paddingRight: 12 }}>
+          {metaA.label} →
         </div>
-        <div />
-        <div style={{ fontFamily: sans, fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: metaB.color }}>
-          ← {metaB.label} advantage
+        <div style={{ width: 180, flexShrink: 0 }} />
+        <div style={{ flex: 1, fontFamily: sans, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: metaB.color, paddingLeft: 12 }}>
+          ← {metaB.label}
         </div>
+      </div>
 
+      {/* Rows */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {sortedByGap.map(r => {
           const aVal = r[a];
           const bVal = r[b];
           const aPct = (aVal / maxAbs) * 100;
           const bPct = (bVal / maxAbs) * 100;
+          const winner = r.gap > 0 ? a : r.gap < 0 ? b : null;
           return (
-            <React.Fragment key={r.name}>
+            <div key={r.name} style={{ display: "flex", alignItems: "center", gap: 0, minHeight: 28 }}>
               {/* Left bar (A) */}
-              <div style={{ display: "flex", justifyContent: "flex-end", height: 18 }}>
-                <div style={{ width: `${Math.min(100, (r.gap > 0 ? aPct : 0))}%`, height: "100%",
-                  background: metaA.color, borderRadius: "3px 0 0 3px",
-                  opacity: r.gap > 0 ? 1 : 0.25,
-                  minWidth: aVal > 0 ? 4 : 0,
+              <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", paddingRight: 0 }}>
+                <div style={{
+                  height: 22, width: `${Math.min(100, aPct)}%`, minWidth: aVal > 0 ? 4 : 0,
+                  background: winner === a
+                    ? `linear-gradient(to right, ${metaA.color}, ${metaA.color}ee 55%, ${metaA.color}00)`
+                    : `linear-gradient(to right, ${metaA.color}30, ${metaA.color}00)`,
+                  borderRadius: "3px 0 0 3px",
                   display: "flex", alignItems: "center", justifyContent: "flex-start",
-                  paddingLeft: 6, color: "#fff", fontFamily: mono, fontSize: 10, fontWeight: 700,
+                  paddingLeft: 7, color: "#fff", fontFamily: mono, fontSize: 10, fontWeight: 700,
+                  flexShrink: 0,
                 }}>
-                  {aVal > 0 && aPct > 12 ? aVal : ""}
+                  {aVal > 0 && aPct > 10 ? aVal : ""}
                 </div>
               </div>
-              {/* Theme label */}
+
+              {/* Centre chip */}
               <div style={{
-                textAlign: "center" as const, fontFamily: sans, fontSize: 12, fontWeight: 500, color: dark,
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+                width: 180, flexShrink: 0,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                position: "relative" as const,
               }}>
-                <span style={{ color: gray, display: "flex" }}>{topicIcons[r.name]}</span>
-                {r.name}
-              </div>
-              {/* Right bar (B) */}
-              <div style={{ display: "flex", justifyContent: "flex-start", height: 18 }}>
-                <div style={{ width: `${Math.min(100, (r.gap < 0 ? bPct : 0))}%`, height: "100%",
-                  background: metaB.color, borderRadius: "0 3px 3px 0",
-                  opacity: r.gap < 0 ? 1 : 0.25,
-                  minWidth: bVal > 0 ? 4 : 0,
-                  display: "flex", alignItems: "center", justifyContent: "flex-end",
-                  paddingRight: 6, color: "#fff", fontFamily: mono, fontSize: 10, fontWeight: 700,
+                <div style={{
+                  position: "relative" as const, zIndex: 1,
+                  display: "inline-flex", alignItems: "center", gap: 5,
+                  padding: "4px 10px",
+                  borderRadius: 20,
+                  background: winner ? PARTY_META[winner].color + "12" : "#f5f3ee",
+                  border: `1px solid ${winner ? PARTY_META[winner].color + "44" : border}`,
+                  fontFamily: sans, fontSize: 11, fontWeight: 600, color: dark,
+                  whiteSpace: "nowrap" as const,
+                  letterSpacing: "0.01em",
                 }}>
-                  {bVal > 0 && bPct > 12 ? bVal : ""}
+                  <span style={{ color: winner ? PARTY_META[winner].color : gray, display: "flex", flexShrink: 0 }}>
+                    {topicIcons[r.name]}
+                  </span>
+                  {r.name}
                 </div>
               </div>
-            </React.Fragment>
+
+              {/* Right bar (B) */}
+              <div style={{ flex: 1, display: "flex", justifyContent: "flex-start", paddingLeft: 0 }}>
+                <div style={{
+                  height: 22, width: `${Math.min(100, bPct)}%`, minWidth: bVal > 0 ? 4 : 0,
+                  background: winner === b
+                    ? `linear-gradient(to left, ${metaB.color}, ${metaB.color}ee 55%, ${metaB.color}00)`
+                    : `linear-gradient(to left, ${metaB.color}30, ${metaB.color}00)`,
+                  borderRadius: "0 3px 3px 0",
+                  display: "flex", alignItems: "center", justifyContent: "flex-end",
+                  paddingRight: 7, color: "#fff", fontFamily: mono, fontSize: 10, fontWeight: 700,
+                  flexShrink: 0,
+                }}>
+                  {bVal > 0 && bPct > 10 ? bVal : ""}
+                </div>
+              </div>
+            </div>
           );
         })}
       </div>
 
       <p style={{ fontFamily: serif, fontSize: 12, color: gray, fontStyle: "italic", margin: 0 }}>
-        Bar length = promise count for each party. Faded bars show the losing side of each duel so you see both numbers at once.
+        Bar length = promise count. Faded bars show the trailing side. Chip colour tints toward the leader.
       </p>
     </div>
   );
@@ -530,8 +558,8 @@ export function CompareGrid() {
           Who promises what?
         </h2>
         <p style={{ fontFamily: serif, fontSize: 16, lineHeight: "30px", color: "#2e2e2e", marginTop: 4, marginBottom: 0 }}>
-          {(TOTALS.admk + TOTALS.dmk + TOTALS.tvk).toLocaleString()} promises across 12 policy themes —
-          sorted four ways to tell different stories about ADMK, DMK and TVK.
+          {(TOTALS.admk + TOTALS.dmk + TOTALS.tvk).toLocaleString()} promises across {THEME_COUNT} policy themes —
+          sorted {VIEW_MODES.length} ways to tell different stories about {PARTY_LABELS.join(", ")}.
         </p>
       </div>
 
