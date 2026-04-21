@@ -2,36 +2,54 @@ name: Deploy Frontend
 on:
   push:
     branches: ["main"]
-
 permissions:
   contents: read
   pages: write
   id-token: write
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
           cache-dependency-path: frontend/package.json
-
       - name: Install and Build
         working-directory: frontend
         run: |
           npm install
-          npm run build
+          npm install -D @tailwindcss/postcss
+          npx json -I -f postcss.config.json -e 'this.plugins["@tailwindcss/postcss"]={}; delete this.plugins["tailwindcss"]' 2>/dev/null || node -e "
+            const fs = require('fs');
+            const path = require('path');
 
+            const configFiles = ['postcss.config.js', 'postcss.config.cjs', 'postcss.config.mjs'];
+            let found = null;
+
+            for (const f of configFiles) {
+              if (fs.existsSync(f)) { found = f; break; }
+            }
+
+            if (!found) { console.log('No postcss config found, skipping patch'); process.exit(0); }
+
+            let content = fs.readFileSync(found, 'utf8');
+            if (content.includes('@tailwindcss/postcss')) {
+              console.log('postcss config already patched, skipping');
+              process.exit(0);
+            }
+
+            content = content.replace(/tailwindcss\s*:\s*\{\}/g, \"'@tailwindcss/postcss': {}\");
+            fs.writeFileSync(found, content);
+            console.log('Patched ' + found + ' to use @tailwindcss/postcss');
+          "
+          npm run build
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: frontend/dist/ # Vite outputs to 'dist' by default
-
+          path: frontend/dist/
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
