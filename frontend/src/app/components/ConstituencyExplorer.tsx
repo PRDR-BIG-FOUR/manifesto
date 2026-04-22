@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback, useRef } from "react";
 import sirData from "../../../../data/tn_sir_constituency_stats_2026.json";
 import { results2021ByAcNo, competitiveness, PARTY_COLORS_2021 } from "../elections2021";
+import { rolls2025ByAcNo } from "../rolls2025";
 import { allPoints } from "../manifestoData";
 import {
   kmlConstituencies, voterFill, growthFill,
@@ -89,20 +90,24 @@ export function ConstituencyExplorer() {
 
   const ac = useMemo(() => statsByNo.get(acNo) ?? allAC[0], [acNo]);
   const r21 = results2021ByAcNo.get(ac.ac_no);
+  const r25 = rolls2025ByAcNo.get(ac.ac_no);
 
   // Precompute per-AC derived values used by the map fill.
+  // "Growth" now compares the SIR 2026 roll against the Jan-2025 roll (post-SIR deletions),
+  // not against the 2021 rolls — this surfaces the poll-number reduction.
   const derivedByNo = useMemo(() => {
     const m = new Map<number, { val: number; growthPct: number; winner: string | null }>();
     for (const c of allAC) {
-      const past = results2021ByAcNo.get(c.ac_no);
-      const growth = past && past.totalElectors
-        ? ((c.total - past.totalElectors) / past.totalElectors) * 100
+      const past25 = rolls2025ByAcNo.get(c.ac_no);
+      const past21 = results2021ByAcNo.get(c.ac_no);
+      const growth = past25 && past25.total
+        ? ((c.total - past25.total) / past25.total) * 100
         : 0;
       const valByMode: Record<VoterMapMode, number> = {
         total: c.total, men: c.men, women: c.women,
         growth, winner2021: 0,
       };
-      m.set(c.ac_no, { val: valByMode[mode], growthPct: growth, winner: past?.partyShort ?? null });
+      m.set(c.ac_no, { val: valByMode[mode], growthPct: growth, winner: past21?.partyShort ?? null });
     }
     return m;
   }, [mode]);
@@ -124,10 +129,10 @@ export function ConstituencyExplorer() {
     }
   }, []);
 
-  // Derived voter comparison numbers.
-  const electorDelta = r21 ? ac.total - r21.totalElectors : null;
-  const electorDeltaPct = r21 && r21.totalElectors
-    ? ((ac.total - r21.totalElectors) / r21.totalElectors) * 100
+  // Electorate comparison is now 2025 roll → 2026 SIR roll (post-SIR deletion delta).
+  const electorDelta = r25 ? ac.total - r25.total : null;
+  const electorDeltaPct = r25 && r25.total
+    ? ((ac.total - r25.total) / r25.total) * 100
     : null;
   const compet = r21 ? competitiveness(r21.marginPct) : null;
   const womenPct = (ac.women / ac.total) * 100;
@@ -150,9 +155,9 @@ export function ConstituencyExplorer() {
     const grew = electorDelta ?? 0;
     const womenLead = ac.women > ac.men;
     const growBit = grew > 0
-      ? `${fmt(Math.abs(grew))} more voters than 2021`
-      : grew < 0 ? `${fmt(Math.abs(grew))} fewer voters than 2021`
-      : `roughly the same voter count as 2021`;
+      ? `${fmt(Math.abs(grew))} more voters than the 2025 roll`
+      : grew < 0 ? `${fmt(Math.abs(grew))} fewer voters than the 2025 roll`
+      : `roughly the same voter count as the 2025 roll`;
     const compBit = compet!.label === "Flip-risk" ? "a knife-edge seat" :
                     compet!.label === "Swing" ? "a genuine swing seat" :
                     compet!.label === "Lean" ? `a ${winner}-leaning seat` :
@@ -163,12 +168,13 @@ export function ConstituencyExplorer() {
 
   const hoveredStats = hovered !== null ? statsByNo.get(hovered) : null;
   const hoveredR21 = hovered !== null ? results2021ByAcNo.get(hovered) : null;
+  const hoveredR25 = hovered !== null ? rolls2025ByAcNo.get(hovered) : null;
 
   const modeOptions: Array<{ k: VoterMapMode; label: string; col: string }> = [
     { k: "total",      label: "Total",        col: brown },
     { k: "men",        label: "Men",          col: "#7DB3E8" },
     { k: "women",      label: "Women",        col: "#E87D9B" },
-    { k: "growth",     label: "Growth vs '21", col: "#047857" },
+    { k: "growth",     label: "Δ vs 2025 roll", col: "#047857" },
     { k: "winner2021", label: "2021 Winner",   col: dark },
   ];
 
@@ -181,7 +187,7 @@ export function ConstituencyExplorer() {
         </h2>
         <p style={{ fontFamily: serif, fontSize: 15, color: "#2e2e2e", lineHeight: "26px", marginTop: 6, maxWidth: 760 }}>
           Click any of Tamil Nadu's 234 constituencies on the map. See who lives there now,
-          how they voted in 2021, how the electorate has grown or shrunk since, and what parties are promising.
+          how they voted in 2021, how the electoral roll has shifted between the Jan-2025 roll and the SIR-2026 roll, and what parties are promising.
         </p>
       </div>
 
@@ -277,20 +283,18 @@ export function ConstituencyExplorer() {
               <div style={{ fontFamily: mono, fontSize: 11, color: "#fff" }}>
                 {fmt(hoveredStats.total)} voters (2026)
               </div>
-              {hoveredR21 && (
-                <>
-                  <div style={{ fontFamily: mono, fontSize: 10, color: "rgba(255,255,255,0.75)" }}>
-                    2021: {hoveredR21.partyShort} won by {hoveredR21.marginPct.toFixed(1)}%
+              {hoveredR25 && (() => {
+                const g = ((hoveredStats.total - hoveredR25.total) / hoveredR25.total) * 100;
+                return (
+                  <div style={{ fontFamily: mono, fontSize: 10, color: g >= 0 ? "#6ee7b7" : "#fca5a5" }}>
+                    {g >= 0 ? "+" : ""}{g.toFixed(1)}% vs 2025 roll
                   </div>
-                  {(() => {
-                    const g = ((hoveredStats.total - hoveredR21.totalElectors) / hoveredR21.totalElectors) * 100;
-                    return (
-                      <div style={{ fontFamily: mono, fontSize: 10, color: g >= 0 ? "#6ee7b7" : "#fca5a5" }}>
-                        {g >= 0 ? "+" : ""}{g.toFixed(1)}% voters vs 2021
-                      </div>
-                    );
-                  })()}
-                </>
+                );
+              })()}
+              {hoveredR21 && (
+                <div style={{ fontFamily: mono, fontSize: 10, color: "rgba(255,255,255,0.75)" }}>
+                  2021: {hoveredR21.partyShort} won by {hoveredR21.marginPct.toFixed(1)}%
+                </div>
               )}
             </div>
           )}
@@ -373,34 +377,34 @@ export function ConstituencyExplorer() {
           {/* THEN vs NOW — the flagship comparison */}
           <SectionTitle
             eyebrow="Then vs Now"
-            title="The electorate — 2021 vs 2026"
-            sub="How the voter rolls have changed between the last election and the SIR 2026 final roll."
+            title="The electorate — 2025 roll vs 2026 SIR"
+            sub="How the roll changed between the 06-Jan-2025 electoral roll and the Special Intensive Revision's final 2026 roll — i.e. the poll-number reduction."
           />
-          {r21 ? (
+          {r25 ? (
             <div style={{
               background: "#fff", border: `1px solid ${border}`, borderRadius: 8,
               padding: "16px 18px", marginBottom: 28,
             }}>
               {/* Dual-bar compare */}
               {(() => {
-                const maxSide = Math.max(ac.total, r21.totalElectors);
-                const p21 = (r21.totalElectors / maxSide) * 100;
+                const maxSide = Math.max(ac.total, r25.total);
+                const p25 = (r25.total / maxSide) * 100;
                 const p26 = (ac.total / maxSide) * 100;
                 const growth = electorDeltaPct ?? 0;
                 return (
                   <>
                     <div style={{ marginBottom: 12 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", fontFamily: mono, fontSize: 11, color: gray, marginBottom: 4 }}>
-                        <span>2021 rolls</span>
-                        <span style={{ color: dark, fontWeight: 700 }}>{fmt(r21.totalElectors)}</span>
+                        <span>2025 roll (06-Jan-2025)</span>
+                        <span style={{ color: dark, fontWeight: 700 }}>{fmt(r25.total)}</span>
                       </div>
                       <div style={{ height: 16, background: "#ede9e3", borderRadius: 8, overflow: "hidden" }}>
-                        <div style={{ width: `${p21}%`, height: "100%", background: gray, borderRadius: 8 }} />
+                        <div style={{ width: `${p25}%`, height: "100%", background: gray, borderRadius: 8 }} />
                       </div>
                     </div>
                     <div style={{ marginBottom: 14 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", fontFamily: mono, fontSize: 11, color: gray, marginBottom: 4 }}>
-                        <span>2026 rolls (SIR)</span>
+                        <span>2026 roll (SIR, 23-Feb-2026)</span>
                         <span style={{ color: dark, fontWeight: 700 }}>{fmt(ac.total)}</span>
                       </div>
                       <div style={{ height: 16, background: "#ede9e3", borderRadius: 8, overflow: "hidden" }}>
@@ -414,10 +418,10 @@ export function ConstituencyExplorer() {
                     <Headline
                       text={
                         growth > 2
-                          ? `The roll grew by ${growth.toFixed(1)}% — that's ${fmt(Math.abs(electorDelta!))} new voters. A bigger electorate can reshuffle a safe seat.`
+                          ? `The roll grew by ${growth.toFixed(1)}% — ${fmt(Math.abs(electorDelta!))} more names on the 2026 roll than the 2025 roll. A rare expansion through SIR.`
                           : growth < -2
-                          ? `The roll shrank by ${Math.abs(growth).toFixed(1)}% — ${fmt(Math.abs(electorDelta!))} fewer voters. Migration or SIR deletions at work.`
-                          : `The roll is nearly unchanged vs 2021 (${growth >= 0 ? "+" : ""}${growth.toFixed(1)}%). Turnout, not roll size, will decide this one.`
+                          ? `The roll shrank by ${Math.abs(growth).toFixed(1)}% — ${fmt(Math.abs(electorDelta!))} fewer voters after SIR deletions from the 2025 roll.`
+                          : `The roll is nearly unchanged vs the 2025 roll (${growth >= 0 ? "+" : ""}${growth.toFixed(1)}%). SIR left this AC largely untouched.`
                       }
                     />
                   </>
@@ -426,7 +430,7 @@ export function ConstituencyExplorer() {
             </div>
           ) : (
             <div style={{ background: "#faf9f6", padding: "14px 16px", borderRadius: 6, marginBottom: 28, fontFamily: mono, fontSize: 12, color: gray }}>
-              2021 result not available for this constituency.
+              2025 roll not available for this constituency.
             </div>
           )}
 
@@ -441,9 +445,9 @@ export function ConstituencyExplorer() {
             <Stat label="Men" value={fmt(ac.men)} sub={`${((ac.men/ac.total)*100).toFixed(1)}%`} color="#7DB3E8" />
             <Stat label="Women" value={fmt(ac.women)} sub={`${womenPct.toFixed(1)}%`} color="#E87D9B" />
             <Stat
-              label="vs 2021"
+              label="vs 2025 roll"
               value={electorDelta === null ? "—" : `${electorDelta >= 0 ? "+" : ""}${fmt(electorDelta)}`}
-              sub={electorDeltaPct === null ? "" : `${electorDeltaPct >= 0 ? "+" : ""}${electorDeltaPct.toFixed(1)}% change`}
+              sub={electorDeltaPct === null ? "" : `${electorDeltaPct >= 0 ? "+" : ""}${electorDeltaPct.toFixed(1)}% after SIR`}
               color={electorDelta === null ? gray : electorDelta >= 0 ? "#047857" : "#dc2626"}
             />
           </div>
