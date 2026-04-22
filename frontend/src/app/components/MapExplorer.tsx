@@ -18,7 +18,7 @@ const border = "#d9d7d2";
 const brown = "#a16749";
 
 const PARTY_COLORS: Record<string, { base: string; light: string; dark: string }> = {
-  ADMK: { base: "#547c5b", light: "#d4e8d4", dark: "#2f4a34" },
+  AIADMK: { base: "#547c5b", light: "#d4e8d4", dark: "#2f4a34" },
   DMK: { base: "#c94d48", light: "#f5d4d2", dark: "#7a2624" },
   TVK: { base: "#E5A000", light: "#fef0c7", dark: "#8a5e00" },
 };
@@ -362,6 +362,17 @@ export function MapExplorer() {
   const [containerSize, setContainerSize] = useState({ w: 0, h: 0 });
   const mapRef = useRef<HTMLDivElement>(null);
 
+  // Click outside the map container resets selection
+  React.useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (mapRef.current && !mapRef.current.contains(e.target as Node)) {
+        setSelectedDistrict(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const { districts: districtMap, statewide } = useMemo(
     () => buildDistrictMap(allPoints, partyFilter),
     [partyFilter]
@@ -371,7 +382,7 @@ export function MapExplorer() {
     let max = 0;
     for (const d of districtMap.values()) {
       const val = partyFilter
-        ? d[partyFilter === "ADMK" ? "admk" : partyFilter === "DMK" ? "dmk" : "tvk"]
+        ? d[partyFilter === "AIADMK" ? "admk" : partyFilter === "DMK" ? "dmk" : "tvk"]
         : d.total;
       if (val > max) max = val;
     }
@@ -388,7 +399,7 @@ export function MapExplorer() {
     let sum = 0;
     for (const d of districtMap.values()) {
       sum += partyFilter
-        ? d[partyFilter === "ADMK" ? "admk" : partyFilter === "DMK" ? "dmk" : "tvk"]
+        ? d[partyFilter === "AIADMK" ? "admk" : partyFilter === "DMK" ? "dmk" : "tvk"]
         : d.total;
     }
     return sum;
@@ -398,7 +409,7 @@ export function MapExplorer() {
     let count = 0;
     for (const d of districtMap.values()) {
       const val = partyFilter
-        ? d[partyFilter === "ADMK" ? "admk" : partyFilter === "DMK" ? "dmk" : "tvk"]
+        ? d[partyFilter === "AIADMK" ? "admk" : partyFilter === "DMK" ? "dmk" : "tvk"]
         : d.total;
       if (val > 0) count++;
     }
@@ -416,7 +427,7 @@ export function MapExplorer() {
   const getCount = useCallback(
     (data: DistrictData) => {
       if (!partyFilter) return data.total;
-      return data[partyFilter === "ADMK" ? "admk" : partyFilter === "DMK" ? "dmk" : "tvk"];
+      return data[partyFilter === "AIADMK" ? "admk" : partyFilter === "DMK" ? "dmk" : "tvk"];
     },
     [partyFilter]
   );
@@ -634,7 +645,7 @@ export function MapExplorer() {
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           {[
-            { l: "ADMK", v: statewide.admk, c: PARTY_COLORS.ADMK.base },
+            { l: "AIADMK", v: statewide.admk, c: PARTY_COLORS.AIADMK.base },
             { l: "DMK", v: statewide.dmk, c: PARTY_COLORS.DMK.base },
             { l: "TVK", v: statewide.tvk, c: PARTY_COLORS.TVK.base },
           ].map((r) => (
@@ -832,7 +843,7 @@ export function MapExplorer() {
                 }}
               >
                 {[
-                  { label: "ADMK", val: hoveredData.admk, c: PARTY_COLORS.ADMK.base },
+                  { label: "AIADMK", val: hoveredData.admk, c: PARTY_COLORS.AIADMK.base },
                   { label: "DMK", val: hoveredData.dmk, c: PARTY_COLORS.DMK.base },
                   { label: "TVK", val: hoveredData.tvk, c: PARTY_COLORS.TVK.base },
                 ].map((r) => (
@@ -1062,9 +1073,9 @@ function StatewideDetail({
 
       {/* Party bars */}
       <div style={{ padding: "16px 24px" }}>
-        {(["ADMK", "DMK", "TVK"] as const).map((label) => {
+        {(["AIADMK", "DMK", "TVK"] as const).map((label) => {
           const count =
-            data[label === "ADMK" ? "admk" : label === "DMK" ? "dmk" : "tvk"];
+            data[label === "AIADMK" ? "admk" : label === "DMK" ? "dmk" : "tvk"];
           const pct = (count / barMax) * 100;
           const pc = PARTY_COLORS[label];
           return (
@@ -1354,8 +1365,8 @@ function DistrictDetail({
 
       {/* Party bars */}
       <div style={{ padding: "16px 24px" }}>
-        {(["ADMK", "DMK", "TVK"] as const).map((label) => {
-          const count = data[label === "ADMK" ? "admk" : label === "DMK" ? "dmk" : "tvk"];
+        {(["AIADMK", "DMK", "TVK"] as const).map((label) => {
+          const count = data[label === "AIADMK" ? "admk" : label === "DMK" ? "dmk" : "tvk"];
           const pct = (count / barMax) * 100;
           const pc = PARTY_COLORS[label];
           return (
@@ -1576,7 +1587,7 @@ function DistrictRanking({
       .map(([name, data]) => {
         const count = partyFilter
           ? data[
-              partyFilter === "ADMK"
+              partyFilter === "AIADMK"
                 ? "admk"
                 : partyFilter === "DMK"
                 ? "dmk"
@@ -1728,7 +1739,7 @@ function DistrictRanking({
                     }}
                   >
                     {[
-                      { l: "A", v: data.admk, c: PARTY_COLORS.ADMK.base },
+                      { l: "A", v: data.admk, c: PARTY_COLORS.AIADMK.base },
                       { l: "D", v: data.dmk, c: PARTY_COLORS.DMK.base },
                       { l: "T", v: data.tvk, c: PARTY_COLORS.TVK.base },
                     ].map((r) => (

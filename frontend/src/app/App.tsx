@@ -11,6 +11,7 @@ import { CompareGrid } from "./components/CompareGrid";
 import { DemographyExplorer } from "./components/DemographyExplorer";
 import { FactCheckPanel } from "./components/FactCheckPanel";
 import { MapExplorer } from "./components/MapExplorer";
+import { SIRMap } from "./components/SIRMap";
 import imgHero from "../assets/MANIFESTO_IMAGE.png";
 import {
   allPoints,
@@ -41,7 +42,7 @@ const admkColor = "#547c5b";
 const dmkColor = "#c94d48";
 const tvkColor = "#E5A000";
 
-const tabs = ["Dashboard", "Compare", "Demography", "Fact Check", "Map"];
+const tabs = ["Dashboard", "Compare", "Demography", "Fact Check", "Map", "Voters"];
 
 // Editorial descriptions for each feasibility dimension in feasibilityRadarData.
 const FEASIBILITY_DESCRIPTIONS: Record<string, string> = {
@@ -379,7 +380,7 @@ function DashboardTab() {
               <YAxis tick={{ fontFamily: mono, fontSize: 11, fill: gray }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ fontFamily: sans, fontSize: 12, border: `1px solid ${border}`, borderRadius: 4 }} cursor={{ fill: "#f5f3ee" }} />
               <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontFamily: sans, fontSize: 12 }} />
-              <Bar dataKey="admk" name="ADMK" fill={PARTY_COLORS_BY_LABEL["ADMK"]} radius={[3, 3, 0, 0]} style={{ cursor: "pointer" }} onClick={(data) => data.admk > 0 && setDrill({ party: "admk", label: data.label })} />
+              <Bar dataKey="admk" name="AIADMK" fill={PARTY_COLORS_BY_LABEL["AIADMK"]} radius={[3, 3, 0, 0]} style={{ cursor: "pointer" }} onClick={(data) => data.admk > 0 && setDrill({ party: "admk", label: data.label })} />
               <Bar dataKey="dmk" name="DMK" fill={PARTY_COLORS_BY_LABEL["DMK"]} radius={[3, 3, 0, 0]} style={{ cursor: "pointer" }} onClick={(data) => data.dmk > 0 && setDrill({ party: "dmk", label: data.label })} />
               <Bar dataKey="tvk" name="TVK" fill={PARTY_COLORS_BY_LABEL["TVK"]} radius={[3, 3, 0, 0]} style={{ cursor: "pointer" }} onClick={(data) => data.tvk > 0 && setDrill({ party: "tvk", label: data.label })} />
             </BarChart>
@@ -402,7 +403,7 @@ function DashboardTab() {
               <RadarChart data={feasibilityRadarData}>
                 <PolarGrid stroke={border} />
                 <PolarAngleAxis dataKey="dim" tick={{ fontFamily: sans, fontSize: 12, fill: gray }} />
-                <Radar name="ADMK" dataKey="ADMK" stroke={admkColor} fill={admkColor} fillOpacity={0.12} strokeWidth={2} dot />
+                <Radar name="AIADMK" dataKey="AIADMK" stroke={admkColor} fill={admkColor} fillOpacity={0.12} strokeWidth={2} dot />
                 <Radar name="DMK" dataKey="DMK" stroke={dmkColor} fill={dmkColor} fillOpacity={0.12} strokeWidth={2} dot />
                 <Radar name="TVK" dataKey="TVK" stroke={tvkColor} fill={tvkColor} fillOpacity={0.12} strokeWidth={2} dot />
                 <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontFamily: sans, fontSize: 12 }} />
@@ -477,7 +478,7 @@ function DemographyTab() {
                   cursor={{ fill: "#f5f3ee" }}
                 />
                 <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontFamily: sans, fontSize: 12 }} />
-                <Bar dataKey="admk" name="ADMK" fill={admkColor} radius={[3, 3, 0, 0]} />
+                <Bar dataKey="admk" name="AIADMK" fill={admkColor} radius={[3, 3, 0, 0]} />
                 <Bar dataKey="dmk" name="DMK" fill={dmkColor} radius={[3, 3, 0, 0]} />
                 <Bar dataKey="tvk" name="TVK" fill={tvkColor} radius={[3, 3, 0, 0]} />
               </BarChart>
@@ -516,6 +517,7 @@ export default function App() {
         {activeTab === "Compare" && <section style={{ padding: "0px 0" }}><CompareGrid /></section>}
         {activeTab === "Demography" && <DemographyTab />}
         {activeTab === "Map" && <MapExplorer />}
+        {activeTab === "Voters" && <SIRMap />}
         {activeTab === "Fact Check" && <FactCheckPanel />}
 
         {/* Global Footer / Disclaimer */}

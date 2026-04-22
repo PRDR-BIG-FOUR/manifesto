@@ -19,7 +19,7 @@ const tvkColor  = "#E5A000";
 type PartyKey = "admk" | "dmk" | "tvk";
 
 const PARTY_META: Record<PartyKey, { label: string; color: string }> = {
-  admk: { label: "ADMK", color: admkColor },
+  admk: { label: "AIADMK", color: admkColor },
   dmk:  { label: "DMK",  color: dmkColor  },
   tvk:  { label: "TVK",  color: tvkColor  },
 };
