@@ -116,7 +116,7 @@ const PARTY_FILTER_META: Array<{ k: PartyKey; label: string; color: string }> = 
 
 export function ConstituencyExplorer() {
   const [acNo, setAcNo] = useState<number>(1);
-  const [mode, setMode] = useState<VoterMapMode>("total");
+  const [mode, setMode] = useState<VoterMapMode>("polls2026");
   const [hovered, setHovered] = useState<number | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [partyFilter, setPartyFilter] = useState<Record<PartyKey, boolean>>({
@@ -259,10 +259,13 @@ export function ConstituencyExplorer() {
       {/* Header */}
       <div style={{ marginBottom: 18 }}>
         <h2 style={{ fontFamily: serif, fontSize: 34, fontWeight: 400, color: dark, margin: 0, lineHeight: 1.2 }}>
-          Constituency Explorer
+          Poll Maps
         </h2>
-        <p style={{ fontFamily: serif, fontSize: 15, color: "#2e2e2e", lineHeight: "26px", marginTop: 6, maxWidth: 1200, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-          Click any of 234 constituencies — demographics, 2021 result, S.I.R. roll changes, and manifesto promises.
+        <p style={{ fontFamily: serif, fontSize: 15, color: "#2e2e2e", lineHeight: "26px", marginTop: 6, maxWidth: 760 }}>
+          234 constituencies · 3 elections · 5 lenses. Switch between
+          {" "}<strong>2026</strong> turnout, S.I.R. impact and demographics, or
+          the <strong>2021</strong> / <strong>2016</strong> winners. Click any
+          seat to zoom in.
         </p>
       </div>
 
@@ -550,13 +553,16 @@ export function ConstituencyExplorer() {
             </div>
           </div>
 
-          {/* Plain-English headline */}
-          <div style={{
-            background: "#faf9f6", borderLeft: `3px solid ${brown}`,
-            padding: "12px 16px", borderRadius: 4, marginBottom: 24,
-          }}>
-            <Headline text={storyHeadline} />
-          </div>
+          {/* Plain-English headline — sits above every mode EXCEPT Voter
+              Turnout, where the 2026 section leads and this is pushed below. */}
+          {mode !== "polls2026" && (
+            <div style={{
+              background: "#faf9f6", borderLeft: `3px solid ${brown}`,
+              padding: "12px 16px", borderRadius: 4, marginBottom: 24,
+            }}>
+              <Headline text={storyHeadline} />
+            </div>
+          )}
 
           {/* THEN vs NOW — only when S.I.R. impact mode is active */}
           {mode === "growth" && (<>
@@ -800,18 +806,12 @@ export function ConstituencyExplorer() {
                 </div>
 
                 {/* Stat grid */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 14 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 14 }}>
                   <Stat
                     label="2026 VTR"
                     value={`${poll.vtr_pct.toFixed(2)}%`}
                     sub={`rank #${rank} of 234`}
                     color={col}
-                  />
-                  <Stat
-                    label="vs state avg"
-                    value={`${deltaState >= 0 ? "+" : ""}${deltaState.toFixed(2)} pp`}
-                    sub={`state ${STATE_VTR_2026.toFixed(2)}%`}
-                    color={deltaState >= 0 ? "#047857" : "#DD3639"}
                   />
                   <Stat
                     label="vs 2021"
@@ -931,6 +931,14 @@ export function ConstituencyExplorer() {
                       ))}
                     </div>
                   </div>
+                </div>
+
+                {/* Generic story headline pushed down here in Voter Turnout */}
+                <div style={{
+                  background: "#faf9f6", borderLeft: `3px solid ${brown}`,
+                  padding: "12px 16px", borderRadius: 4, marginBottom: 24,
+                }}>
+                  <Headline text={storyHeadline} />
                 </div>
               </>
             );

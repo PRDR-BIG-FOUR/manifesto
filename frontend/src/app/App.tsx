@@ -45,6 +45,43 @@ const tvkColor = "#E5A000";
 
 const tabs = ["Dashboard", "Poll Maps", "Compare", "Demography", "Fact Check"];
 
+// ── URL routing ────────────────────────────────────────────────────────────
+// Each nav tab gets its own path under the Vite base (`/tn-2026/`):
+//   /tn-2026/dashboard, /tn-2026/poll-maps, /tn-2026/compare,
+//   /tn-2026/demography, /tn-2026/fact-check.  Hitting the bare base URL
+//   redirects to /tn-2026/dashboard.  A hidden "search" slug covers the
+//   in-app Search tab that opens when the header input is used.
+
+const BASE_URL: string =
+  typeof import.meta !== "undefined" && (import.meta as any).env?.BASE_URL
+    ? (import.meta as any).env.BASE_URL
+    : "/";
+
+const TAB_TO_SLUG: Record<string, string> = {
+  Dashboard: "dashboard",
+  "Poll Maps": "poll-maps",
+  Compare: "compare",
+  Demography: "demography",
+  "Fact Check": "fact-check",
+  Search: "search",
+};
+const SLUG_TO_TAB: Record<string, string> = Object.fromEntries(
+  Object.entries(TAB_TO_SLUG).map(([tab, slug]) => [slug, tab])
+);
+
+function tabFromLocation(): string {
+  if (typeof window === "undefined") return "Dashboard";
+  let p = window.location.pathname;
+  if (p.startsWith(BASE_URL)) p = p.slice(BASE_URL.length);
+  const slug = p.replace(/^\/+|\/+$/g, "").split("/")[0] || "";
+  return SLUG_TO_TAB[slug] ?? "Dashboard";
+}
+
+function buildPath(tab: string): string {
+  const slug = TAB_TO_SLUG[tab] ?? "dashboard";
+  return BASE_URL.replace(/\/?$/, "/") + slug;
+}
+
 // Editorial descriptions for each feasibility dimension in feasibilityRadarData.
 const FEASIBILITY_DESCRIPTIONS: Record<string, string> = {
   Fiscal: "Can the state afford it?",
@@ -191,17 +228,31 @@ function NavBar({
         }}
       >
         {tabs.map(t => (
-          <button key={t} onClick={(e) => {
-            setActiveTab(t);
-            e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-          }} style={{
-            background: "none", border: "none", cursor: "pointer", padding: "4px 4px",
-            fontFamily: sans, fontSize: 14, fontWeight: activeTab === t ? 700 : 500,
-            letterSpacing: "0.58px", textTransform: "uppercase" as const,
-            color: activeTab === t ? brown : dark,
-            boxShadow: activeTab === t ? `inset 0 -2px 0 0 ${brown}` : "none",
-            flexShrink: 0, whiteSpace: "nowrap",
-          }}>{t}</button>
+          <a
+            key={t}
+            href={buildPath(t)}
+            onClick={(e) => {
+              // Let modifier-clicks (cmd/ctrl/middle/shift) behave like a
+              // normal anchor — open in a new tab, copy link, etc.
+              if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button === 1) return;
+              e.preventDefault();
+              setActiveTab(t);
+              (e.currentTarget as HTMLAnchorElement).scrollIntoView({
+                behavior: "smooth", block: "nearest", inline: "center",
+              });
+            }}
+            style={{
+              background: "none", border: "none", cursor: "pointer", padding: "4px 4px",
+              fontFamily: sans, fontSize: 14, fontWeight: activeTab === t ? 700 : 500,
+              letterSpacing: "0.58px", textTransform: "uppercase" as const,
+              color: activeTab === t ? brown : dark,
+              boxShadow: activeTab === t ? `inset 0 -2px 0 0 ${brown}` : "none",
+              flexShrink: 0, whiteSpace: "nowrap",
+              textDecoration: "none",
+            }}
+          >
+            {t}
+          </a>
         ))}
       </div>
       <div className="mobile-w-full" style={{
@@ -562,18 +613,50 @@ function DemographyTab() {
 // ── App Root ──────────────────────────────────────────────────────────────
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState("Dashboard");
+  const [activeTab, setActiveTab] = useState<string>(() => tabFromLocation());
   const [searchQuery, setSearchQuery] = useState("");
+
+  // On first mount: if the user hit the bare base URL ("/tn-2026/"),
+  // rewrite the URL to "/tn-2026/dashboard" without adding history.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const p = window.location.pathname;
+    const stripped = p.startsWith(BASE_URL) ? p.slice(BASE_URL.length) : p;
+    const bare = stripped.replace(/^\/+|\/+$/g, "");
+    if (!bare) {
+      window.history.replaceState({ tab: "Dashboard" }, "", buildPath("Dashboard"));
+    }
+  }, []);
+
+  // Keep the URL in sync with the active tab.  Uses `pushState` so the
+  // browser back/forward buttons work across tabs.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const desired = buildPath(activeTab);
+    if (window.location.pathname !== desired) {
+      window.history.pushState({ tab: activeTab }, "", desired);
+    }
+  }, [activeTab]);
+
+  // Respond to back/forward navigation by reading the tab out of the URL.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    function onPop() {
+      setActiveTab(tabFromLocation());
+    }
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
 
   // Fire a GA4 page_view every time the active tab changes so each tab
   // registers as its own page in Google Analytics.
   useEffect(() => {
     if (typeof window === "undefined" || !window.gtag) return;
-    const path = `/${activeTab.toLowerCase().replace(/\s+/g, "-")}`;
+    const path = `/${TAB_TO_SLUG[activeTab] ?? activeTab.toLowerCase().replace(/\s+/g, "-")}`;
     window.gtag("event", "page_view", {
-      page_title: `Manifesto Analysis — ${activeTab}`,
+      page_title: `TN Elections 2026 — ${activeTab}`,
       page_path: path,
-      page_location: window.location.origin + window.location.pathname + "#" + path.slice(1),
+      page_location: window.location.origin + window.location.pathname,
     });
   }, [activeTab]);
 
