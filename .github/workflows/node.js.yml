@@ -47,6 +47,7 @@ jobs:
             console.log('Patched ' + found + ' to use @tailwindcss/postcss');
           "
           npm run build
+          cp dist/index.html dist/404.html
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
         with:
